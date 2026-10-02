@@ -56,6 +56,7 @@ Wazuh Dashboard
 - Nmap-generated TCP SYN scan observed in Wazuh
 - SSH invalid-user authentication detection through journald
 - Wazuh SSH rule 5710 observed on the Arch Linux endpoint
+- SSH brute-force correlation using custom Wazuh rule 100003
 
 ## Repository goals
 
