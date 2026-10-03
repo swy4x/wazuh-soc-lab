@@ -1,6 +1,6 @@
 # Wazuh SOC Lab
 
-A hands-on SOC lab built around Wazuh, Suricata, Zeek, controlled reconnaissance/authentication testing, FIM, malware-test artifacts, and YARA-based file hunting.
+A hands-on SOC lab built around Wazuh, Suricata, Zeek, controlled reconnaissance/authentication testing, FIM, malware-test artifacts, and YARA-based file hunting and automated detection.
 
 ## Current stack
 
@@ -10,7 +10,7 @@ A hands-on SOC lab built around Wazuh, Suricata, Zeek, controlled reconnaissance
 - Wazuh Agent 4.14.5 on the Arch Linux host
 - Suricata 8.x on the Arch Linux host
 - Zeek on the Arch Linux host
-- YARA 4.5.6 for standalone file hunting
+- YARA 4.5.6
 - Docker-based Wazuh deployment
 - systemd journald collection for host authentication logs
 - Arch Linux host with a Windows VM planned for later
@@ -58,38 +58,102 @@ Wazuh rules / alerts
 Wazuh Dashboard
 ```
 
-### File / malware-test workflow
+### FIM → YARA → Wazuh workflow
 
 ```
-File appears
+File created/modified
   ↓
-Wazuh FIM
+Wazuh FIM / syscheckd
   ↓
-Hash / metadata
+Rule 554 / Rule 550
   ↓
-IOC investigation (VirusTotal)
+Wazuh Active Response
   ↓
-YARA file hunting
+Agent-side yara-scan
+  ↓
+YARA 4.5.6
+  ↓
+YARA_MATCH
+  ↓
+/var/ossec/logs/yara-results.log
+  ↓
+Wazuh Agent log collection
+  ↓
+Wazuh Manager Rule 100500
+  ↓
+Wazuh Dashboard Level 12 alert
 ```
 
 ## Labs completed
+
+### Wazuh / endpoint
+
+- systemd journald collection for SSH authentication telemetry
+- SSH invalid-user authentication detection
+- Wazuh SSH Rule 5710 observation
+- SSH brute-force correlation using custom Wazuh Rule 100003
+- Realtime Wazuh FIM for file creation, modification, and deletion
+- EICAR test-file detection through Wazuh FIM
+- EICAR SHA-256 IOC investigation and VirusTotal correlation
+
+### Suricata
 
 - Suricata → Wazuh alert ingestion
 - DNS reconnaissance detection
 - UDP scan / burst detection
 - TCP SYN scan / port sweep detection
 - Nmap-generated TCP SYN scan observed in Wazuh
+- Custom Suricata SIDs for TCP, ICMP, SSH, SMB, RDP, HTTP, HTTPS, UDP, DNS, FIN, NULL, and Xmas traffic
+
+### Zeek
+
 - Zeek → Wazuh integration
-- Zeek synthetic SSL event detection
+- Synthetic SSL event detection
 - Zeek DNS reconnaissance detection and correlation
-- SSH invalid-user authentication detection through journald
-- Wazuh SSH rule 5710 observed on the Arch Linux endpoint
-- SSH brute-force correlation using custom Wazuh rule 100003
-- Real-time Wazuh FIM: file creation, modification, and deletion
-- EICAR test-file detection through Wazuh FIM
-- EICAR SHA-256 IOC investigation and VirusTotal correlation
-- Standalone YARA practicals: strings, regex, logic, filesize, hashes, metadata, tags, private helper rules, ELF and PE modules
-- YARA hash-vs-string comparison using a harmless modified EICAR test artifact
+- Zeek `id` field mapping conflict resolved by mapping the value to `data.zeek_id`
+
+### YARA
+
+- Exact string matching
+- `any of them` / `all of them`
+- Boolean AND / OR / NOT logic
+- File-size conditions
+- Compound conditions
+- SHA-256 hash matching
+- Hash-vs-content comparison using a modified EICAR artifact
+- Regex matching
+- Metadata
+- Private helper rules
+- Rule tags
+- ELF module
+- PE module and PE architecture testing
+- PE + indicator logic
+- Recursive EICAR hunting
+- Automated YARA → Wazuh integration
+- Wazuh Active Response invoking YARA
+- Wazuh Rule 100500 generating a Level 12 YARA alert
+
+## Repository structure
+
+```
+README.md
+docs/
+  architecture.md
+  yara-practical.md
+  yara-wazuh-integration.md
+network/
+  zeek-wazuh.md
+suricata/
+  README.md
+  local-rules.md
+attacks/
+  ssh-invalid-user.md
+  ssh-brute-force.md
+  nmap-tcp-syn-scan.md
+  eicar-fim-detection.md
+investigations/
+  eicar-hash-investigation.md
+```
 
 ## Evidence / screenshots
 
