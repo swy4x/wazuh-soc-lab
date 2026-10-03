@@ -1,72 +1,56 @@
-# SSH Invalid-User Authentication Detection
+# SSH Invalid-User Detection
 
 ## Objective
 
-Verify that an SSH authentication failure on the Arch Linux host is collected through systemd journal by the Wazuh agent and reaches the Wazuh Dashboard.
+Verify that an SSH login attempt using a non-existent username is collected by Wazuh through systemd journald.
 
 ## Test
 
-A controlled SSH login attempt used a non-existent username from the lab client:
+A controlled login attempt used:
 
 ```text
 ssh wronguser@<LAB_HOST_IP>
 ```
 
-The failed authentication generated SSH events in the Arch Linux journal.
-
-## Observed Wazuh event
+## Observed event
 
 | Field | Value |
 |---|---|
-| Agent ID | `001` |
-| Agent name | `archlinux` |
-| Agent IP | `127.0.0.1` |
-| Source IP | `10.41.169.183` |
-| Source user | `wronguser` |
-| Decoder | `sshd` |
-| Location | `journald` |
-| Wazuh rule | `5710` |
-| Wazuh level | `5` |
-| Rule description | `sshd: Attempt to login using a non-existent user` |
-| MITRE technique | `T1110.001 Password Guessing`, `T1021.004 SSH` |
+| Agent | 001 / archlinux |
+| Source IP | 10.41.169.183 |
+| Source user | wronguser |
+| Decoder | sshd |
+| Location | journald |
+| Rule | 5710 |
+| Level | 5 |
+| Description | sshd: Attempt to login using a non-existent user |
 
-## Example event
+The observed event was:
 
-```text
+```
 Failed password for invalid user wronguser from 10.41.169.183
 ```
 
-## Investigation
+## Detection flow
 
-The event establishes:
-
-- `10.41.169.183` = SSH source/client
-- `wronguser` = non-existent account used in the attempt
-- `archlinux` = monitored endpoint
-- Wazuh received the event through `journald`
-- The `sshd` decoder extracted the source IP and username
-- Wazuh classified the event with rule `5710`
-
-## Detection pipeline
-
-```text
+```
 SSH client
-   ↓
-Arch Linux sshd
-   ↓
+  ↓
+sshd
+  ↓
 systemd journal
-   ↓
-Wazuh Agent 4.14.5
-   ↓
-Wazuh Manager 4.14.1
-   ↓
-Wazuh rule 5710
-   ↓
-Wazuh Indexer
-   ↓
-Wazuh Dashboard
+  ↓
+Wazuh Agent
+  ↓
+Wazuh Manager
+  ↓
+Rule 5710
+  ↓
+Indexer / Dashboard
 ```
 
-## Next step
+## SOC lesson
 
-Use repeated controlled authentication failures from the same source to test the custom SSH brute-force correlation rule `100002`.
+The important information is not only that authentication failed. The event also provides the source IP, attempted username, endpoint, decoder, and rule identity.
+
+The event can later become an input to correlation logic such as SSH brute-force detection.
