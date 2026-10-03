@@ -55,3 +55,31 @@ Suricata's SID and Wazuh's rule ID represent different layers.
 - **86601** = Wazuh's observed Suricata alert-ingestion rule.
 
 The Wazuh rule does not replace the Suricata signature.
+
+
+## Custom Suricata Rule
+
+The controlled scan was detected by the lab's custom Suricata SID 1000001:
+
+\`\`\`
+LAB: TCP SYN Scan / Port Sweep
+SID: 1000001
+\`\`\`
+
+The event was then ingested by Wazuh under Rule 86601.
+
+The current repository stores the verified SID and observed event but not the original Suricata signature body. The documentation therefore does not reconstruct the missing source syntax.
+
+\`\`\`
+Nmap
+  ↓
+TCP SYN traffic
+  ↓
+Suricata SID 1000001
+  ↓
+eve.json
+  ↓
+Wazuh Rule 86601
+  ↓
+Dashboard
+\`\`\`
