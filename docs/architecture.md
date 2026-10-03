@@ -631,3 +631,63 @@ What evidence do I have?
         ↓
 What should I investigate next?
 ```
+
+
+# 19. Custom Detection Rules
+
+The lab uses custom detection logic at several layers. The identifiers belong to different engines and must not be mixed.
+
+## Wazuh Rule 100003
+
+\`\`\`xml
+<rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
+  <if_matched_sid>5760</if_matched_sid>
+  <same_source_ip/>
+  <description>LAB: SSH Brute Force - 3 authentication failures from the same source IP within 60 seconds</description>
+  <mitre><id>T1110</id></mitre>
+  <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
+</rule>
+\`\`\`
+
+The rule consumes built-in Rule 5760 events and adds source-IP, frequency, timeframe, and suppression logic.
+
+## Wazuh Rule 100500
+
+\`\`\`xml
+<rule id="100500" level="12">
+  <match>YARA_MATCH</match>
+  <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
+  <group>yara,malware_detection,file_integrity,lab,</group>
+</rule>
+\`\`\`
+
+This is the final Wazuh detection layer in the FIM-to-YARA workflow.
+
+## YARA integration rule
+
+\`\`\`yara
+rule Wazuh_EICAR_Test
+{
+    meta:
+        author = "Swayam"
+        description = "Detects the harmless EICAR antivirus test string"
+        severity = "high"
+
+    strings:
+        $eicar = "EICAR-STANDARD-ANTIVIRUS-TEST-FILE"
+
+    condition:
+        $eicar
+}
+\`\`\`
+
+## Custom network identifiers
+
+| Engine | Identifier | Purpose |
+|---|---:|---|
+| Suricata | SID 1000001-1000012 | Controlled network signatures |
+| Zeek/Wazuh | 100102 | Synthetic SSL |
+| Zeek/Wazuh | 100304 | DNS reconnaissance |
+| Zeek/Wazuh | 100305 | DNS reconnaissance correlation |
+
+The repository records verified identifiers and behavior where original source bodies are available. It does not reconstruct unverified signature syntax.
