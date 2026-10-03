@@ -2,6 +2,14 @@
 
 A hands-on SOC lab built around Wazuh, Suricata, Zeek, controlled reconnaissance/authentication testing, FIM, malware-test artifacts, and YARA-based file hunting and automated detection.
 
+## 🧰 Tools Corner
+
+**Start here if you want to understand the lab's tools, what each one does, where it runs, and exactly how the tools connect to Wazuh.**
+
+→ See [docs/tools-corner.md](docs/tools-corner.md)
+
+The Tools Corner contains the A-to-Z tool map, architecture flows, ports, important paths, detection layers, Wazuh connections, YARA Active Response integration, and the practical learning order.
+
 ## Current stack
 
 - Wazuh Manager 4.14.1
@@ -138,6 +146,7 @@ Wazuh Dashboard Level 12 alert
 ```
 README.md
 docs/
+  tools-corner.md
   architecture.md
   yara-practical.md
   yara-wazuh-integration.md
