@@ -2,11 +2,9 @@
 
 ## Objective
 
-Generate a controlled TCP SYN scan against the lab host and verify that Suricata and Wazuh detect it.
+Generate a controlled TCP SYN scan and verify that Suricata detects it and Wazuh receives the resulting alert.
 
 ## Test
-
-The scanner used Nmap with a TCP SYN scan against the lab host:
 
 ```bash
 nmap -sS -p 1-1000 <LAB_HOST_IP>
@@ -14,36 +12,46 @@ nmap -sS -p 1-1000 <LAB_HOST_IP>
 
 Only authorized lab systems should be scanned.
 
-## Observed Wazuh event
-
-Example observed fields:
+## Observed event
 
 | Field | Value |
 |---|---|
-| Suricata signature | `LAB: TCP SYN Scan / Port Sweep` |
-| Suricata signature ID | `1000001` |
+| Suricata signature | LAB: TCP SYN Scan / Port Sweep |
+| Suricata SID | 1000001 |
 | Protocol | TCP |
-| Source IP | `10.170.114.183` |
-| Destination IP | `10.170.114.88` |
-| Destination port | `334` |
-| Interface | `wlp8s0` |
-| Event type | `alert` |
-| Wazuh rule | `86601` |
-| Wazuh level | `3` |
+| Source IP | 10.170.114.183 |
+| Destination IP | 10.170.114.88 |
+| Destination port | 334 |
+| Interface | wlp8s0 |
+| Event type | alert |
+| Wazuh rule | 86601 |
+| Wazuh level | 3 |
 
-## Investigation
+## Detection flow
 
-The source and destination fields allow the analyst to establish:
+```
+Nmap
+ ↓
+TCP SYN traffic
+ ↓
+Suricata
+ ↓
+SID 1000001
+ ↓
+eve.json
+ ↓
+Wazuh
+ ↓
+Rule 86601
+ ↓
+Dashboard
+```
 
-- `10.170.114.183` = scanner/source
-- `10.170.114.88` = lab host/target
-- TCP was used
-- Suricata classified the activity as a TCP SYN scan / port sweep
+## Important distinction
 
-## Important note
+Suricata's SID and Wazuh's rule ID represent different layers.
 
-Wazuh rule `86601` is the generic Suricata alert ingestion rule in this lab. The more specific detection identity comes from the Suricata signature and signature ID.
+- **1000001** = the Suricata network detection.
+- **86601** = Wazuh's observed Suricata alert-ingestion rule.
 
-## Next improvement
-
-Create higher-level Wazuh correlation rules for reconnaissance and investigate whether network characteristics can distinguish likely scanning tools such as Nmap or Masscan. Tool identification should be treated as a fingerprint/likelihood, not guaranteed attribution from packets alone.
+The Wazuh rule does not replace the Suricata signature.
