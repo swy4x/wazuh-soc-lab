@@ -1,334 +1,117 @@
-# 🧰 Tools Corner — Wazuh SOC Lab
+# Tools Corner
 
-This page is the practical **tool map** for the lab.
+This is the lab's reference page for understanding **what each tool does, where it runs, and how it connects to Wazuh**.
 
-It explains:
+The goal is to understand the system, not memorize commands.
 
-- what each tool does;
-- why we use it;
-- where it runs;
-- what it sends/receives;
-- how it connects to Wazuh;
-- which part of the SOC workflow it belongs to;
-- the important paths, ports, rules, and commands used in the lab.
+## 1. Core stack
 
-The goal is to understand the lab as a real SOC environment rather than as a collection of unrelated commands.
-
----
-
-# 1. The Big Picture
-
-The lab is built around **Wazuh as the central SOC platform**.
-
-```
-                         ┌───────────────┐
-                         │   Wazuh       │
-                         │   Dashboard   │
-                         └───────▲───────┘
-                                 │
-                         Alerts / Investigation
-                                 │
-                         ┌───────┴───────┐
-                         │ Wazuh Manager  │
-                         │ Rules / Correlation
-                         └───▲───────┬───┘
-                             │       │
-                    Telemetry│       │Active Response
-                             │       ▼
-              ┌──────────────┘   ┌──────────────┐
-              │                  │ Wazuh Agent  │
-              │                  └──────▲───────┘
-              │                         │
-       ┌──────┴──────┐        ┌─────────┴────────┐
-       │  Suricata   │        │  FIM / syscheckd │
-       │  Network IDS│        │  Endpoint files  │
-       └──────┬──────┘        └─────────┬────────┘
-              │                         │
-       Network traffic             File events
-                                        │
-                                  ┌─────▼─────┐
-                                  │   YARA    │
-                                  │ File hunt │
-                                  └───────────┘
-
-       ┌──────────────┐
-       │     Zeek     │
-       │ Network      │
-       │ telemetry    │
-       └──────┬───────┘
-              │
-              └──────────────→ Wazuh ingestion
-
-       ┌──────────────┐
-       │    sshd      │
-       │ systemd      │
-       │ journald     │
-       └──────┬───────┘
-              │
-              └──────────────→ Wazuh Agent
-```
-
----
-
-# 2. Core Tool Stack
-
-| Tool | Role | Where | Connection to Wazuh |
+| Tool | Role | Runs on | Wazuh connection |
 |---|---|---|---|
-| **Wazuh Manager** | Central analysis, rules, alerts, correlation | Docker | Core |
-| **Wazuh Agent** | Endpoint telemetry + response | Arch Linux host | Direct |
-| **Wazuh Dashboard** | SOC investigation UI | Docker | Reads Wazuh alerts |
-| **Wazuh Indexer** | Stores/searches events | Docker | Backend |
-| **Suricata** | Network IDS | Arch host | Logs → Wazuh |
-| **Zeek** | Network security monitoring | Arch host | Telemetry → Wazuh |
-| **YARA** | File/content hunting | Arch host | Active Response → Wazuh |
-| **Docker** | Runs Wazuh stack | Arch host | Hosts Wazuh components |
-| **systemd journald** | Host log source | Arch host | Agent collects journal |
-| **sshd** | Authentication event source | Arch host | journal → Agent |
-| **Nmap** | Controlled network testing | Test device | Traffic → Suricata |
-| **VirusTotal** | IOC/hash investigation | External service | Analyst investigation |
-| **jq** | JSON parsing in scripts | Arch host | Used by YARA response |
-| **SQLite** | FIM database inspection | Arch host | Used for learning/investigation |
-| **Termux** | Controlled test client | Test device | Generated test traffic |
+| Wazuh Manager | Analysis, rules, alerts, correlation | Docker | Central |
+| Wazuh Agent | Endpoint collection and response | Arch host | Direct |
+| Wazuh Indexer | Event storage/search | Docker | Backend |
+| Wazuh Dashboard | SOC investigation UI | Docker | Reads alerts |
+| Docker | Wazuh deployment layer | Arch host | Hosts Manager/Indexer/Dashboard |
+| journald | Host log source | Arch host | Agent collects it |
+| sshd | Authentication source | Arch host | journald → Agent |
+| FIM/syscheckd | File-change detection | Arch host | Agent → Manager |
+| Suricata | Network IDS | Arch host | JSON → Wazuh |
+| Zeek | Network telemetry | Arch host | Telemetry → Wazuh |
+| YARA | File/content hunting | Arch host | Active Response |
+| Nmap | Controlled network test | Test client | Traffic → Suricata |
+| VirusTotal | IOC investigation | External | Analyst workflow |
+| jq | JSON parsing | Arch host | YARA response script |
+| SQLite | FIM DB inspection | Arch host | Investigation |
+| Termux | Controlled test client | Test device | Generates lab traffic |
 
----
+## 2. Wazuh
 
-# 3. Wazuh — The Center
+Think of Wazuh as the **central SOC platform**.
 
-## Wazuh Manager
+It does not replace every security tool.
 
-The Manager is the central brain of the lab.
+It receives telemetry from other layers, applies rules/correlation, stores the resulting events, and presents them to the analyst.
 
-It:
+### Important rules used
 
-- receives events;
-- decodes incoming data;
-- evaluates Wazuh rules;
-- generates alerts;
-- performs correlation;
-- triggers Active Response;
-- sends searchable alert data toward the Indexer/Dashboard.
+| Rule | Meaning in this lab |
+|---:|---|
+| 5710 | SSH invalid user |
+| 5760 | SSH authentication failure |
+| 5763 | Built-in SSH brute-force correlation |
+| 100003 | Custom SSH brute-force correlation |
+| 554 | FIM file added |
+| 550 | FIM file modified |
+| 553 | FIM file deleted |
+| 86601 | Suricata alert ingestion |
+| 100500 | YARA result converted into Wazuh alert |
 
-### Important Manager rules used in the lab
-
-- **5710** — SSH invalid-user authentication event
-- **5760** — SSH authentication failure correlation source
-- **5763** — built-in SSH brute-force correlation
-- **100003** — custom SSH brute-force lab rule
-- **554** — FIM file added
-- **550** — FIM file modified/checksum changed
-- **553** — FIM file deleted
-- **86601** — Suricata event ingestion observed in the lab
-- **100500** — YARA detection converted into a Wazuh Level 12 alert
-
----
-
-# 4. Wazuh Agent
-
-The Agent runs on the Arch Linux endpoint.
-
-Its major jobs in this lab are:
+## 3. Journald + sshd
 
 ```
-Host logs
-   ↓
-Agent
-   ↓
-Manager
-
-File changes
-   ↓
-FIM/syscheckd
-   ↓
-Agent
-   ↓
-Manager
-
-FIM event
-   ↓
-Active Response
-   ↓
-YARA
-```
-
-### Agent
-
-- ID: `001`
-- Name: `archlinux`
-- Manager address: `127.0.0.1`
-- Agent package: `4.14.5-1`
-
-The Agent configuration was repeatedly validated with:
-
-```bash
-sudo /var/ossec/bin/wazuh-agentd -t
-```
-
----
-
-# 5. Wazuh Dashboard
-
-The Dashboard is the analyst interface.
-
-We use it to:
-
-- search alerts;
-- inspect rule IDs;
-- inspect rule levels;
-- inspect agent information;
-- inspect source IPs;
-- inspect file paths;
-- inspect hashes;
-- investigate YARA results;
-- verify that the entire detection pipeline reached the SOC interface.
-
-The final YARA integration was confirmed in the Dashboard with:
-
-```text
-Rule: 100500
-Level: 12
-Agent: 001 / archlinux
-Location: /var/ossec/logs/yara-results.log
-
-YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com
-```
-
----
-
-# 6. Wazuh Indexer
-
-The Indexer stores the Wazuh alert/event data used for investigation.
-
-The Docker deployment exposes the Indexer on:
-
-```text
-9200
-```
-
-The Dashboard uses the stored data for searching and investigation.
-
----
-
-# 7. Docker
-
-The Wazuh deployment is Docker-based.
-
-Main services:
-
-```text
-single-node-wazuh.manager-1
-single-node-wazuh.dashboard-1
-single-node-wazuh.indexer-1
-```
-
-Important exposed ports:
-
-```text
-1514-1515/tcp  → Wazuh agent communication
-514/udp         → Wazuh event input
-55000/tcp       → Wazuh API
-9200            → Wazuh Indexer
-443 → 5601      → Wazuh Dashboard
-```
-
-Docker keeps the Wazuh Manager, Indexer, and Dashboard separated from the Arch host while the Wazuh Agent and security tools run on the host.
-
----
-
-# 8. systemd journald
-
-Arch Linux uses systemd journald for system logs.
-
-Instead of making the Manager directly read the host journal, the **Wazuh Agent** collects it.
-
-The Agent uses:
-
-```xml
-<localfile>
-  <log_format>journald</log_format>
-  <location>journald</location>
-</localfile>
-```
-
-This gives the SOC visibility into host authentication events.
-
----
-
-# 9. SSH / sshd
-
-OpenSSH/sshd provides authentication events.
-
-Example workflow:
-
-```
-SSH login attempt
-       ↓
 sshd
-       ↓
+ ↓
 systemd journal
-       ↓
+ ↓
 Wazuh Agent
-       ↓
+ ↓
 Wazuh Manager
-       ↓
-SSH detection rules
-       ↓
-Dashboard
 ```
 
-We tested:
+The important lesson is that the Manager does not directly depend on the host journal. The endpoint Agent collects the journal and forwards the relevant events.
 
-- invalid users;
-- authentication failures;
-- repeated failures from the same source;
-- custom brute-force correlation.
+## 4. FIM
 
-Custom lab rule:
+FIM answers:
 
-```text
-Rule ID: 100003
-Level: 10
-Frequency: 3
-Timeframe: 60 seconds
-Ignore: 60 seconds
+> Did a monitored file appear, change, or disappear?
+
+The lab monitors:
+
+```
+/opt/wazuh-malware-lab
 ```
 
----
+in realtime.
 
-# 10. Suricata
+FIM is the **trigger** for the YARA workflow. It is not the malware classifier.
 
-Suricata is the lab's **network IDS**.
+## 5. YARA
 
-It inspects network traffic and generates structured events.
+YARA answers:
 
-### Interface
+> Does this file match a rule describing an indicator or pattern?
 
-```text
-wlp8s0
+YARA is both a rule language and an engine that evaluates those rules.
+
+Version:
+
+```
+4.5.6
 ```
 
-### Main output
+The lab first tested YARA independently, then connected it to Wazuh.
 
-```text
+## 6. Suricata
+
+Suricata answers:
+
+> Does network traffic match one of the IDS signatures?
+
+Main output:
+
+```
 /var/log/suricata/eve.json
 ```
 
-### Data flow
+Interface used:
 
 ```
-Network traffic
-      ↓
-Suricata
-      ↓
-Custom/local detection rules
-      ↓
-eve.json
-      ↓
-Wazuh
-      ↓
-Dashboard
+wlp8s0
 ```
 
-### Custom Suricata SIDs
+Custom SIDs:
 
 | SID | Test |
 |---:|---|
@@ -340,627 +123,152 @@ Dashboard
 | 1000006 | HTTP |
 | 1000007 | HTTPS |
 | 1000008 | UDP |
-| 1000009 | DNS burst |
+| 1000009 | DNS |
 | 1000010 | FIN |
 | 1000011 | NULL |
 | 1000012 | Xmas |
 
-The Nmap TCP SYN test generated Suricata SID **1000001**, which was then visible through Wazuh ingestion.
+## 7. Zeek
 
----
+Zeek answers a different question:
 
-# 11. Nmap
+> What structured network activity happened?
 
-Nmap is used only for **controlled reconnaissance testing** in the lab.
+It produces telemetry around connections and protocols such as DNS, HTTP, and SSL/TLS.
 
-Its purpose is not to be the detection system.
-
-It generates network behavior.
+The tested ingestion pipeline maps Zeek's native `id` value to:
 
 ```
-Nmap
-  ↓
-TCP SYN traffic
-  ↓
-Suricata
-  ↓
-Detection
-  ↓
-Wazuh
-  ↓
-Dashboard
-```
-
-This gives the SOC lab a realistic way to generate reconnaissance telemetry.
-
----
-
-# 12. Zeek
-
-Zeek is the lab's **network security monitoring / network telemetry** layer.
-
-It provides structured protocol-level information such as:
-
-- connections;
-- DNS;
-- HTTP;
-- SSL/TLS;
-- file/network metadata.
-
-### Data flow
-
-```
-Network activity
-      ↓
-Zeek
-      ↓
-Structured Zeek logs
-      ↓
-Filebeat / ingestion pipeline
-      ↓
-Wazuh
-      ↓
-Rules
-      ↓
-Dashboard
-```
-
-### Important integration fix
-
-Zeek's `id` field conflicted with the Wazuh ingestion mapping.
-
-We solved this by mapping the Zeek value to:
-
-```text
 data.zeek_id
 ```
 
-instead of using the conflicting `id` field directly.
+to avoid the field-mapping conflict encountered during testing.
 
----
+## 8. Nmap
 
-# 13. YARA
+Nmap is a **test generator**, not the detection system.
 
-YARA is both:
-
-1. a **rule language**;
-2. a **file-hunting/detection engine**.
-
-Version:
-
-```text
-YARA 4.5.6
-```
-
-We first learned YARA independently and tested:
-
-- strings;
-- `any of them`;
-- `all of them`;
-- AND / OR / NOT;
-- filesize;
-- compound conditions;
-- SHA-256 hashes;
-- regex;
-- metadata;
-- private helper rules;
-- tags;
-- ELF module;
-- PE module;
-- PE architecture;
-- PE + indicator logic;
-- recursive hunting.
-
-Then we connected YARA to Wazuh.
-
----
-
-# 14. How YARA Connects to Wazuh
-
-This is one of the most important parts of the lab.
-
-### Step 1 — Wazuh FIM watches the directory
-
-```text
-/opt/wazuh-malware-lab
-```
-
-with realtime monitoring.
-
-### Step 2 — File event occurs
-
-A file is created or modified.
-
-### Step 3 — Wazuh generates a FIM event
-
-Relevant rules:
-
-```text
-554 → file added
-550 → file modified
-```
-
-### Step 4 — Active Response starts
-
-Wazuh launches:
-
-```text
-yara-scan
-```
-
-for Rule 554 or Rule 550.
-
-### Step 5 — yara-scan extracts the file path
-
-The script receives a JSON event through stdin and extracts the FIM path.
-
-It also restricts scanning to:
-
-```text
-/opt/wazuh-malware-lab/*
-```
-
-### Step 6 — YARA scans the file
-
-YARA evaluates:
-
-```text
-/opt/yara-rules/wazuh-malware-lab.yar
-```
-
-### Step 7 — Result is logged
-
-A match produces:
-
-```text
-YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com
-```
-
-in:
-
-```text
-/var/ossec/logs/yara-results.log
-```
-
-### Step 8 — Wazuh collects that log
-
-The Agent reads the result log as a syslog-formatted local file.
-
-### Step 9 — Wazuh Rule 100500 fires
-
-```xml
-<rule id="100500" level="12">
-  <match>YARA_MATCH</match>
-  <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
-</rule>
-```
-
-### Step 10 — Dashboard shows the alert
-
-Final pipeline:
+For example:
 
 ```
-File
+Nmap
  ↓
-FIM
+TCP SYN traffic
  ↓
-554 / 550
+Suricata
  ↓
-Active Response
- ↓
-yara-scan
- ↓
-YARA
- ↓
-YARA_MATCH
- ↓
-yara-results.log
- ↓
-Agent
- ↓
-Manager
- ↓
-100500 / Level 12
- ↓
-Dashboard
+Wazuh
 ```
 
----
+The lab uses Nmap only against authorized lab targets.
 
-# 15. The YARA Active Response Script
+## 9. VirusTotal
 
-Important files:
-
-```text
-/var/ossec/active-response/bin/yara-scan
-/opt/yara-rules/wazuh-malware-lab.yar
-/var/ossec/logs/yara-results.log
-```
-
-The script:
-
-1. reads one JSON line;
-2. checks for the `add` command;
-3. extracts the FIM path;
-4. validates the path;
-5. runs YARA;
-6. extracts the match;
-7. writes `YARA_MATCH`;
-8. exits.
-
-### Important debugging lesson
-
-The first implementation used:
-
-```bash
-INPUT="$(cat)"
-```
-
-This waited for EOF and caused the Active Response process to hang.
-
-The working implementation uses:
-
-```bash
-IFS= read -r INPUT
-```
-
-This reads the single event line and lets the script finish.
-
----
-
-# 16. FIM / syscheckd
-
-Wazuh FIM is the endpoint file-integrity layer.
-
-It detects:
-
-- file creation;
-- modification;
-- deletion;
-- metadata/hash changes.
-
-We configured realtime monitoring for:
-
-```text
-/opt/wazuh-malware-lab
-```
-
-The FIM database is:
-
-```text
-/var/ossec/queue/fim/db/fim.db
-```
-
-SQLite was used to inspect the database structure while learning how FIM stores file state.
-
----
-
-# 17. EICAR
-
-EICAR is **not real malware**.
-
-It is a standardized harmless antivirus test artifact used to validate security-product detection.
-
-We used:
-
-```text
-/opt/wazuh-malware-lab/eicar.com
-```
-
-It was **never executed**.
-
-Wazuh FIM detected its creation and recorded cryptographic hashes.
-
-The SHA-256 was independently verified and investigated.
-
----
-
-# 18. VirusTotal
-
-VirusTotal was used as an **IOC investigation source**, not as part of the automatic Wazuh detection pipeline.
+VirusTotal is used after an IOC such as a SHA-256 has been extracted.
 
 Workflow:
 
 ```
 Wazuh FIM
-   ↓
+ ↓
 SHA-256
-   ↓
+ ↓
 VirusTotal lookup
-   ↓
-Vendor detections / labels
-   ↓
-Analyst interpretation
+ ↓
+Vendor labels / file identity
+ ↓
+Analyst conclusion
 ```
 
-The EICAR SHA-256 produced a strong detection consensus, but the investigation correctly identified the artifact as the known harmless EICAR test file.
+For the EICAR lab, the result was interpreted as a known antivirus test artifact, not as a real infection.
 
----
+## 10. YARA → Wazuh connection
 
-# 19. jq
-
-`jq` is used by the YARA Active Response script.
-
-Its job is to extract values from the JSON event supplied by Wazuh.
-
-For example, the script uses JSON parsing to obtain the FIM file path.
-
-Conceptually:
+The important chain is:
 
 ```
-Wazuh JSON
-    ↓
-jq
-    ↓
-file path
-    ↓
-YARA
-```
-
----
-
-# 20. SQLite
-
-SQLite was used during FIM investigation to inspect:
-
-```text
-/var/ossec/queue/fim/db/fim.db
-```
-
-This helped demonstrate that FIM maintains endpoint file state rather than simply printing a temporary message.
-
----
-
-# 21. Termux
-
-Termux was used as a controlled test client for network activity.
-
-Example:
-
-```
-Termux / test device
-        ↓
-Nmap
-        ↓
-TCP SYN traffic
-        ↓
-Suricata
-        ↓
-Wazuh
-```
-
-It provided a separate source for generating network-test traffic against the lab.
-
----
-
-# 22. Ports and Interfaces Cheat Sheet
-
-| Component | Port / Interface |
-|---|---|
-| Wazuh Agent communication | 1514-1515/tcp |
-| Wazuh event input | 514/udp |
-| Wazuh API | 55000/tcp |
-| Wazuh Indexer | 9200 |
-| Wazuh Dashboard | 443 → 5601 |
-| Suricata capture interface | `wlp8s0` |
-| Wazuh Agent Manager address | `127.0.0.1` |
-
----
-
-# 23. Important Lab Paths
-
-| Purpose | Path |
-|---|---|
-| Wazuh Docker stack | `~/wazuh-docker/single-node` |
-| Malware-test lab | `/opt/wazuh-malware-lab` |
-| YARA rules | `/opt/yara-rules` |
-| YARA integration rule | `/opt/yara-rules/wazuh-malware-lab.yar` |
-| YARA Active Response | `/var/ossec/active-response/bin/yara-scan` |
-| YARA result log | `/var/ossec/logs/yara-results.log` |
-| Suricata EVE JSON | `/var/log/suricata/eve.json` |
-| Wazuh FIM database | `/var/ossec/queue/fim/db/fim.db` |
-
----
-
-# 24. Detection Layers
-
-The lab intentionally uses multiple security layers.
-
-```
-                    SOC Visibility
-                         │
-        ┌────────────────┼────────────────┐
-        │                │                │
-   Endpoint           Network          File Hunting
-        │                │                │
-      Wazuh          Suricata /          YARA
-      FIM               Zeek              │
-        │                │                │
-        └────────────────┼────────────────┘
-                         │
-                   Wazuh Manager
-                         │
-                 Rules / Correlation
-                         │
-                    Dashboard
-```
-
-### Why multiple tools?
-
-They answer different questions.
-
-**Suricata:**
-> What suspicious network traffic/signature was observed?
-
-**Zeek:**
-> What was happening in the network at the protocol/connection level?
-
-**Wazuh FIM:**
-> What changed on the endpoint?
-
-**YARA:**
-> Does this file contain characteristics matching a detection rule?
-
-**Wazuh Manager:**
-> How do we centralize, correlate, alert, and investigate the evidence?
-
-**Dashboard:**
-> How does the analyst see and investigate the result?
-
----
-
-# 25. What We Have Actually Built
-
-The lab now demonstrates several complete detection chains.
-
-### SSH
-
-```
-SSH attempt
+FIM event
  ↓
-sshd
+Rule 554 / 550
  ↓
-journald
+Active Response: yara-scan
  ↓
-Wazuh Agent
- ↓
-Wazuh Manager
- ↓
-SSH rules
- ↓
-Dashboard
-```
-
-### Network reconnaissance
-
-```
-Nmap
- ↓
-TCP SYN traffic
- ↓
-Suricata
- ↓
-eve.json
- ↓
-Wazuh
- ↓
-Alert
- ↓
-Dashboard
-```
-
-### Zeek telemetry
-
-```
-Network activity
- ↓
-Zeek
- ↓
-Structured logs
- ↓
-Ingestion pipeline
- ↓
-Wazuh
- ↓
-Detection
- ↓
-Dashboard
-```
-
-### File integrity
-
-```
-File change
- ↓
-Wazuh FIM
- ↓
-554 / 550 / 553
- ↓
-Dashboard
-```
-
-### Malware-test + YARA
-
-```
-File change
- ↓
-Wazuh FIM
- ↓
-Active Response
- ↓
-YARA
+YARA rule evaluation
  ↓
 YARA_MATCH
+ ↓
+/var/ossec/logs/yara-results.log
  ↓
 Wazuh log collection
  ↓
 Rule 100500
  ↓
-Level 12 alert
- ↓
 Dashboard
 ```
 
----
-
-# 26. Learning Order
-
-The practical learning order used in this lab was:
-
-1. Wazuh fundamentals
-2. SSH authentication telemetry
-3. SSH brute-force correlation
-4. Suricata network detection
-5. Nmap-generated reconnaissance
-6. Zeek telemetry and Wazuh integration
-7. Wazuh FIM
-8. EICAR investigation
-9. YARA fundamentals through practical experiments
-10. YARA → Wazuh Active Response integration
-11. **Next: formal YARA language from scratch**
-
----
-
-# 27. Current Status
-
-### Completed
-
-- Wazuh core lab
-- SSH monitoring
-- SSH brute-force detection
-- Suricata integration
-- Nmap reconnaissance testing
-- Zeek integration
-- FIM
-- EICAR investigation
-- YARA practical toolbox
-- YARA → Wazuh automation
-- Dashboard verification
-
-### Next
-
-Formal YARA language learning:
+The scanner is intentionally restricted to:
 
 ```
-Rule structure
-     ↓
-Identifiers
-     ↓
-Strings
-     ↓
-String modifiers
-     ↓
-Conditions
-     ↓
-Boolean logic
-     ↓
-Modules
-     ↓
-Helper rules
-     ↓
-Write rules from scratch
-     ↓
-Positive / negative testing
+/opt/wazuh-malware-lab/*
 ```
 
-> This page is the lab's **Tools Corner**: use it whenever you need to understand what a tool does, why it exists, and how it connects to the rest of the SOC pipeline.
+This keeps the learning workflow controlled.
+
+## 11. Important files
+
+```
+/opt/yara-rules/wazuh-malware-lab.yar
+/var/ossec/active-response/bin/yara-scan
+/var/ossec/logs/yara-results.log
+/opt/wazuh-malware-lab/
+/var/log/suricata/eve.json
+/var/ossec/queue/fim/db/fim.db
+```
+
+## 12. Important ports
+
+```
+1514-1515/tcp  Wazuh agent communication
+514/udp         Wazuh event input
+55000/tcp       Wazuh API
+9200            Wazuh Indexer
+443 → 5601      Wazuh Dashboard
+```
+
+## 13. Detection layers
+
+```
+Source
+ ↓
+Telemetry
+ ↓
+Detection engine
+ ↓
+Wazuh collection
+ ↓
+Wazuh rule/correlation
+ ↓
+Storage
+ ↓
+Dashboard
+ ↓
+Analyst investigation
+```
+
+The same model applies repeatedly across the lab.
+
+## 14. Learning order
+
+The practical learning sequence is:
+
+1. Wazuh basics
+2. Host authentication
+3. SSH detection and correlation
+4. FIM
+5. EICAR and IOC investigation
+6. Suricata
+7. Zeek
+8. YARA language
+9. YARA → Wazuh automation
+10. Future Windows/Sysmon work
+
