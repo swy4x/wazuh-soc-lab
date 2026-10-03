@@ -1,160 +1,141 @@
 # Wazuh SOC Lab
 
-A hands-on SOC lab built around Wazuh, Suricata, Zeek, controlled reconnaissance/authentication testing, FIM, malware-test artifacts, and YARA-based file hunting and automated detection.
+A hands-on SOC lab built around Wazuh, endpoint telemetry, network monitoring, file integrity monitoring, and controlled detection experiments.
 
-## 🧰 Tools Corner
+The lab is built on an Arch Linux endpoint with the Wazuh stack running in Docker. The goal is to understand **how security telemetry moves from a source to a SOC alert**, not just to collect tools.
 
-**Start here if you want to understand the lab's tools, what each one does, where it runs, and exactly how the tools connect to Wazuh.**
-
-→ See [docs/tools-corner.md](docs/tools-corner.md)
-
-The Tools Corner contains the A-to-Z tool map, architecture flows, ports, important paths, detection layers, Wazuh connections, YARA Active Response integration, and the practical learning order.
-
-## Current stack
+## Lab stack
 
 - Wazuh Manager 4.14.1
+- Wazuh Agent 4.14.5
 - Wazuh Indexer
 - Wazuh Dashboard
-- Wazuh Agent 4.14.5 on the Arch Linux host
-- Suricata 8.x on the Arch Linux host
-- Zeek on the Arch Linux host
+- Docker
+- systemd journald
+- sshd
+- Suricata 8.x
+- Zeek
 - YARA 4.5.6
-- Docker-based Wazuh deployment
-- systemd journald collection for host authentication logs
-- Arch Linux host with a Windows VM planned for later
+- Nmap for controlled reconnaissance testing
+- VirusTotal for IOC investigation
 
-## Architecture / data flow
+## Architecture
 
-### Network telemetry
-
-```
-Network traffic
-      ├──────────────→ Suricata
-      │                    ↓
-      │             /var/log/suricata/eve.json
-      │                    ↓
-      │               Wazuh Manager
-      │                    ↓
-      │              Wazuh rules / alerts
-      │                    ↓
-      │               Wazuh Dashboard
-      │
-      └──────────────→ Zeek
-                           ↓
-                    Zeek logs / JSON
-                           ↓
-                     Wazuh Manager
-                           ↓
-                    Wazuh rules / alerts
-                           ↓
-                    Wazuh Dashboard
-```
-
-### Host authentication telemetry
+### Host authentication
 
 ```
 sshd
   ↓
-systemd journal
+systemd journald
   ↓
 Wazuh Agent
   ↓
 Wazuh Manager
   ↓
-Wazuh rules / alerts
+Wazuh rules / correlation
+  ↓
+Wazuh Indexer
   ↓
 Wazuh Dashboard
 ```
 
-### FIM → YARA → Wazuh workflow
+### Network monitoring
 
 ```
-File created/modified
+Network traffic
+  ├──→ Suricata → eve.json → Wazuh
+  └──→ Zeek → structured telemetry → Wazuh
+```
+
+Suricata and Zeek are deliberately treated as different layers:
+
+- **Suricata** — signature-based network IDS.
+- **Zeek** — structured network-security telemetry.
+- **Wazuh** — centralized collection, rules, correlation, storage, and investigation.
+
+### FIM → YARA → Wazuh
+
+```
+File created / modified
   ↓
-Wazuh FIM / syscheckd
+Wazuh FIM
   ↓
-Rule 554 / Rule 550
+Rule 554 / 550
   ↓
-Wazuh Active Response
+Active Response
   ↓
-Agent-side yara-scan
+yara-scan
   ↓
-YARA 4.5.6
+YARA
   ↓
 YARA_MATCH
   ↓
-/var/ossec/logs/yara-results.log
+Wazuh-collected result log
   ↓
-Wazuh Agent log collection
+Rule 100500
   ↓
-Wazuh Manager Rule 100500
-  ↓
-Wazuh Dashboard Level 12 alert
+Dashboard alert
 ```
 
-## Labs completed
+## Completed labs
 
-### Wazuh / endpoint
+### Endpoint
 
-- systemd journald collection for SSH authentication telemetry
-- SSH invalid-user authentication detection
-- Wazuh SSH Rule 5710 observation
-- SSH brute-force correlation using custom Wazuh Rule 100003
-- Realtime Wazuh FIM for file creation, modification, and deletion
-- EICAR test-file detection through Wazuh FIM
-- EICAR SHA-256 IOC investigation and VirusTotal correlation
+- Journald collection
+- SSH invalid-user detection
+- SSH authentication-failure correlation
+- Custom SSH brute-force rule
+- Realtime FIM
+- File creation, modification, and deletion detection
+- EICAR test-artifact detection
+- SHA-256 IOC investigation
 
-### Suricata
+### Network
 
-- Suricata → Wazuh alert ingestion
-- DNS reconnaissance detection
-- UDP scan / burst detection
-- TCP SYN scan / port sweep detection
-- Nmap-generated TCP SYN scan observed in Wazuh
-- Custom Suricata SIDs for TCP, ICMP, SSH, SMB, RDP, HTTP, HTTPS, UDP, DNS, FIN, NULL, and Xmas traffic
-
-### Zeek
-
-- Zeek → Wazuh integration
-- Synthetic SSL event detection
-- Zeek DNS reconnaissance detection and correlation
-- Zeek `id` field mapping conflict resolved by mapping the value to `data.zeek_id`
+- Suricata → Wazuh
+- Controlled TCP SYN scan detection
+- UDP, DNS, ICMP, FIN, NULL, and Xmas test rules
+- Zeek → Wazuh
+- Zeek SSL telemetry
+- Zeek DNS reconnaissance correlation
+- Zeek `id` field mapping fix using `data.zeek_id`
 
 ### YARA
 
-- Exact string matching
-- `any of them` / `all of them`
-- Boolean AND / OR / NOT logic
+- String matching
+- `any of them`
+- `all of them`
+- Boolean AND / OR / NOT
 - File-size conditions
-- Compound conditions
-- SHA-256 hash matching
-- Hash-vs-content comparison using a modified EICAR artifact
-- Regex matching
+- Hash matching
+- Hash vs content comparison
+- Regex
 - Metadata
 - Private helper rules
-- Rule tags
+- Tags
 - ELF module
-- PE module and PE architecture testing
-- PE + indicator logic
-- Recursive EICAR hunting
-- Automated YARA → Wazuh integration
-- Wazuh Active Response invoking YARA
-- Wazuh Rule 100500 generating a Level 12 YARA alert
+- PE module
+- PE architecture
+- PE + indicator conditions
+- Recursive hunting
+- YARA → Wazuh Active Response integration
+
+## Important lab rules
+
+- Testing is performed only against systems and networks controlled for the lab.
+- EICAR is used as a harmless antivirus test artifact and is never executed.
+- The YARA Active Response scanner is restricted to the lab directory.
+- Screenshots are added manually during the learning/documentation phase.
 
 ## Repository structure
 
 ```
 README.md
 docs/
-  tools-corner.md
   architecture.md
+  tools-corner.md
   yara-practical.md
   yara-wazuh-integration.md
-network/
-  zeek-wazuh.md
-suricata/
-  README.md
-  local-rules.md
 attacks/
   ssh-invalid-user.md
   ssh-brute-force.md
@@ -162,16 +143,19 @@ attacks/
   eicar-fim-detection.md
 investigations/
   eicar-hash-investigation.md
+network/
+  zeek-wazuh.md
+suricata/
+  README.md
+  local-rules.md
 ```
 
-## Evidence / screenshots
+## Start here
 
-Screenshots are intentionally collected during each lab and added manually.
+1. Read [Tools Corner](docs/tools-corner.md) for the complete tool map.
+2. Read [Architecture](docs/architecture.md) for the system design.
+3. Use the attack and investigation notes as evidence of completed labs.
+4. Use [YARA Practical](docs/yara-practical.md) for the YARA learning sequence.
+5. Use [YARA → Wazuh Integration](docs/yara-wazuh-integration.md) for the final automated workflow.
 
-Use the screenshot markers inside the individual lab documents to keep evidence tied to the exact step being demonstrated.
-
-## Repository goals
-
-This repository documents the lab as it is actually built and tested. Detection rules, investigation notes, screenshots, and future Windows/Sysmon labs will be added incrementally.
-
-> All testing is performed against systems and networks owned or controlled for this lab.
+> This repository documents the lab as actually built and tested. It does not claim that a lab rule is production-ready merely because it worked in testing.
