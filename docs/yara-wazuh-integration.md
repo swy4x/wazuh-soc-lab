@@ -1,4 +1,4 @@
-# 🔗 YARA → Wazuh Integration — Complete Lab Record
+# YARA → Wazuh Integration — Complete Lab Record
 
 > **Goal:** when a monitored file changes, Wazuh should automatically launch YARA, capture the result, and bring that result back into Wazuh as a normal alert.
 
@@ -6,7 +6,7 @@ This was validated end-to-end using the harmless EICAR antivirus test artifact.
 
 ---
 
-# 1. 🎯 Objective
+# 1.  Objective
 
 Build this chain:
 
@@ -36,7 +36,7 @@ This is the final working architecture.
 
 ---
 
-# 2. 🧠 Why connect FIM and YARA?
+# 2.  Why connect FIM and YARA?
 
 FIM and YARA answer different questions.
 
@@ -56,7 +56,7 @@ The integration therefore creates a chain rather than turning one tool into anot
 
 ---
 
-# 3. 🦠 YARA Rule
+# 3.  YARA Rule
 
 Location:
 
@@ -92,7 +92,7 @@ That means the integration demonstrates actual YARA matching rather than simply 
 
 ---
 
-# 4. 🗂️ FIM Trigger
+# 4.  FIM Trigger
 
 The monitored directory:
 
@@ -117,7 +117,7 @@ These are the Active Response triggers.
 
 ---
 
-# 5. ⚡ Active Response Configuration
+# 5.  Active Response Configuration
 
 The command definition:
 
@@ -142,7 +142,7 @@ The Active Response:
 
 ### Why only 554 and 550?
 
-Because we want the scanner to run when a file is:
+Because the configuration is intended the scanner to run when a file is:
 
 - created;
 - modified.
@@ -151,7 +151,7 @@ Deletion does not provide a file for YARA to scan.
 
 ---
 
-# 6. 🛡️ Scanner Scope
+# 6.  Scanner Scope
 
 Active Response executable:
 
@@ -171,7 +171,7 @@ The lab automation is not intended to become an unrestricted endpoint scanner.
 
 ---
 
-# 7. 🧩 Scanner Logic
+# 7.  Scanner Logic
 
 The final scanner performs these steps:
 
@@ -206,7 +206,7 @@ IFS= read -r INPUT
 
 ---
 
-# 8. 🐛 Debugging: The `cat` Problem
+# 8.  Debugging: The `cat` Problem
 
 The first implementation used:
 
@@ -246,7 +246,7 @@ The problem was stdin handling.
 
 ---
 
-# 9. 🔍 Extracting the Event
+# 9.  Extracting the Event
 
 The scanner uses `jq` to extract:
 
@@ -272,7 +272,7 @@ The scanner therefore works from the Wazuh event instead of using a hard-coded f
 
 ---
 
-# 10. 🧪 Running YARA
+# 10.  Running YARA
 
 The scanner executes:
 
@@ -288,7 +288,7 @@ YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com
 
 ---
 
-# 11. 📝 Result Log
+# 11.  Result Log
 
 The normalized result is written to:
 
@@ -308,7 +308,7 @@ It produces telemetry that Wazuh can consume.
 
 ---
 
-# 12. 📥 Agent Collection
+# 12.  Agent Collection
 
 The Agent collects the YARA result log:
 
@@ -333,7 +333,7 @@ Wazuh Manager
 
 ---
 
-# 13. 🚨 Manager Rule 100500
+# 13.  Manager Rule 100500
 
 The Manager uses:
 
@@ -359,7 +359,7 @@ into a Wazuh alert.
 
 ---
 
-# 14. 🧪 Final Validation
+# 14.  Final Validation
 
 The final test modified:
 
@@ -387,7 +387,7 @@ The scanner process was then checked and had completed rather than remaining stu
 
 ---
 
-# 15. 📊 Dashboard Validation
+# 15.  Dashboard Validation
 
 The resulting Dashboard alert contained:
 
@@ -407,7 +407,7 @@ This is the evidence that the complete chain worked.
 
 ---
 
-# 16. 🧩 Configuration Debugging
+# 16.  Configuration Debugging
 
 There was another real configuration mistake during implementation.
 
@@ -435,7 +435,7 @@ The Manager restarted successfully afterward.
 
 ---
 
-# 17. 🏁 Final End-to-End Proof
+# 17.  Final End-to-End Proof
 
 The entire chain was observed:
 
@@ -461,13 +461,13 @@ The entire chain was observed:
 10. Dashboard alert
 ```
 
-This proves that the integration is not merely theoretical.
+This validates the integration end to end.
 
 ---
 
-# 18. 🧠 What This Lab Actually Teaches
+# 18.  What This Lab Actually Teaches
 
-The deeper lesson is architectural.
+The primary engineering lesson is architectural.
 
 A SOC rarely depends on one tool doing everything.
 
@@ -491,7 +491,7 @@ That is the real value of the integration.
 
 ---
 
-# 19. 🛡️ Safety / Scope
+# 19.  Safety / Scope
 
 - EICAR was used only as a harmless antivirus test artifact.
 - The artifact was never executed.
@@ -501,9 +501,11 @@ That is the real value of the integration.
 
 ---
 
-# 20. 📌 Status
+# 20.  Status
 
-### Integration: ✅ COMPLETE
+### Integration Status
+
+Complete
 
 ### Verified:
 
