@@ -65,4 +65,8 @@ EICAR is intentionally harmless and is used here only to validate the detection 
 
 ## Evidence
 
-- Wazuh Dashboard screenshot: Rule 554 EICAR file creation event.
+### 📸 Screenshot — EICAR FIM detection
+Capture the Wazuh Dashboard showing Rule 554, Level 5, for the EICAR file creation event.
+
+### 📸 Screenshot — local hash verification
+Capture the terminal showing the SHA-256, file size, and `file` output for the EICAR artifact.
