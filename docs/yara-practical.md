@@ -629,3 +629,104 @@ SOC-quality detection logic
 This document is the practical experiment record.
 
 Formal language instruction is maintained separately and will build from syntax fundamentals to detection development.
+
+
+# 26. Exact Rules Used During the Practical Phase
+
+The practical phase included concrete rule definitions.
+
+## EICAR string rule
+
+\`\`\`yara
+rule EICAR_Test_File
+{
+    strings:
+        $eicar = "EICAR-STANDARD-ANTIVIRUS-TEST-FILE"
+
+    condition:
+        $eicar
+}
+\`\`\`
+
+## Regex rule
+
+\`\`\`yara
+$ip = /192\\.168\\.1\\.[0-9]{1,3}/
+\`\`\`
+
+## ELF rule
+
+\`\`\`yara
+import "elf"
+
+rule ELF_File_Test
+{
+    condition:
+        elf.type == elf.ET_EXEC or elf.type == elf.ET_DYN
+}
+\`\`\`
+
+## PE rule
+
+\`\`\`yara
+import "pe"
+
+rule PE_File_Test
+{
+    condition:
+        pe.is_pe
+}
+\`\`\`
+
+## PE architecture rule
+
+\`\`\`yara
+import "pe"
+
+rule PE_32bit_Test
+{
+    condition:
+        pe.machine == pe.MACHINE_I386
+}
+\`\`\`
+
+## PE plus indicator rule
+
+\`\`\`yara
+import "pe"
+
+rule PE_String_Test
+{
+    strings:
+        $indicator = "WAZUH-MALWARE-LAB"
+
+    condition:
+        pe.is_pe and $indicator
+}
+\`\`\`
+
+## Final integration rule
+
+\`\`\`yara
+rule Wazuh_EICAR_Test
+{
+    meta:
+        author = "Swayam"
+        description = "Detects the harmless EICAR antivirus test string"
+        severity = "high"
+
+    strings:
+        $eicar = "EICAR-STANDARD-ANTIVIRUS-TEST-FILE"
+
+    condition:
+        $eicar
+}
+\`\`\`
+
+Location:
+
+\`\`\`
+/opt/yara-rules/wazuh-malware-lab.yar
+\`\`\`
+
+The complete verified custom-rule catalogue is also maintained in the custom-rules reference document.
