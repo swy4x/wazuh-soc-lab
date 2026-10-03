@@ -1,208 +1,117 @@
-# YARA Practical File-Hunting Lab
+# YARA Practical Lab
 
-## Objective
+## Purpose
 
-Learn and validate YARA as a file-hunting engine before connecting its results to Wazuh.
+This document records the practical YARA experiments completed before the formal YARA-language lessons.
 
-**YARA is both:**
-
-- a rule language used to describe file characteristics and detection logic;
-- a command-line engine that evaluates those rules against files.
+The practical phase was intentionally kept separate from the language-learning phase.
 
 ## Environment
 
-- Arch Linux
-- YARA 4.5.6
+- YARA: 4.5.6
+- Endpoint: Arch Linux
 - Lab directory: `/opt/wazuh-malware-lab`
-- Rule directory: `/opt/yara-rules`
-- Test artifact: harmless EICAR antivirus test file
 
-## Practical concepts completed
+## What was tested
 
-### 1. Exact string matching
+### 1. String matching
 
-A rule matched:
+A rule matched the EICAR test string inside the harmless EICAR artifact.
 
-`EICAR-STANDARD-ANTIVIRUS-TEST-FILE`
+### 2. Multiple strings
 
-This demonstrated basic content-based detection.
+Tested:
 
-### 2. `any of them`
+- `any of them`
+- `all of them`
 
-Multiple strings were defined and the rule matched when at least one was present.
+This demonstrated that YARA conditions can combine multiple string identifiers.
 
-### 3. `all of them`
+### 3. Boolean logic
 
-The rule required every defined string to be present. A controlled test with two independent indicators produced no match when only one was present.
+Tested:
 
-### 4. Boolean logic
+- AND
+- OR
+- NOT
 
-The lab validated:
+This demonstrated that detection conditions can be composed rather than relying on a single string.
 
-- `$one and $two`
-- `$one or $two`
-- `$one and not $two`
+### 4. File size
 
-A negative test confirmed that adding the excluded indicator prevents an AND-NOT rule from matching.
+A condition was used to test the size of the EICAR artifact.
 
-### 5. File size
+### 5. SHA-256
 
-The built-in `filesize` value was used to detect files below a size threshold.
+YARA's hash functionality was used to match the original EICAR SHA-256.
 
-### 6. Compound conditions
+A modified copy kept the EICAR text but had a different SHA-256. The result demonstrated:
 
-A rule combined a content indicator with a file-size condition:
+- content/string matching can survive a file modification;
+- exact hash matching cannot.
 
-`$eicar and filesize < 100KB`
+### 6. Regex
 
-### 7. Hash matching
+A regular-expression rule matched a controlled private IPv4 pattern.
 
-The YARA `hash` module was used to match the exact EICAR SHA-256.
+### 7. Metadata
 
-The original file matched the known hash. A modified copy did not.
+Rule metadata was added for analyst context, including author, description, and severity.
 
-### 8. Hash versus content detection
+Metadata does not itself perform the detection.
 
-Adding one harmless byte changed the SHA-256 from:
+### 8. Private helper rules
 
-`275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f`
+A private helper rule was referenced by a public rule.
 
-to:
+The helper did not appear as the final match; the public rule was reported.
 
-`d01fa970d3e882abcd3df0673d2cb58a381205958512cb9d6e724e949fab23ac`
+### 9. Tags
 
-The hash rule stopped matching, while the EICAR string rule still matched.
+Rule tags were tested to attach classification labels to a rule.
 
-This demonstrates the difference between:
+### 10. ELF module
 
-- **hash IOC detection** — exact file identity;
-- **content/rule detection** — characteristics that can survive small file changes.
+The ELF module was used to identify executable/shared-object binaries.
 
-### 9. Regex
+### 11. PE module
 
-A regex rule detected a harmless private IPv4 test pattern:
+The PE module was used to identify a Windows PE file present in the Wine environment.
 
-`192.168.1.[0-9]{1,3}`
+PE architecture matching was also tested.
 
-### 10. Metadata
+### 12. PE + indicator logic
 
-The `meta` section was used to record rule author, description, and severity.
+A PE condition was combined with a controlled string indicator.
 
-Metadata describes the rule; it does not decide whether the rule matches.
+A plain text file containing the indicator did not satisfy the PE condition, demonstrating that both conditions matter.
 
-### 11. Private helper rules
+### 13. Recursive hunting
 
-A `private` helper rule was referenced by a main rule. The helper matched internally but was not printed as a standalone result.
+Recursive YARA scanning was used to hunt the lab directory for the EICAR indicator.
 
-### 12. Rule tags
+## Important lesson
 
-Tags were added to a rule to categorize it for rule-set management.
-
-### 13. ELF module
-
-The `elf` module was used to identify Linux executables and scan `/usr/bin`.
-
-### 14. PE module
-
-The `pe` module identified a harmless Wine `cmd.exe` PE sample.
-
-A PE architecture test also validated a 32-bit I386 executable.
-
-### 15. PE + indicator logic
-
-A combined PE/string rule was tested against a plain text file. It produced no match because the file contained the indicator but was not a PE.
-
-### 16. Recursive EICAR hunting
-
-Recursive YARA scanning was used against the lab directory and detected both the original and modified EICAR artifacts through content-based matching.
-
-## YARA → Wazuh integration
-
-The practical phase now includes a verified automated pipeline:
+YARA can detect different kinds of evidence:
 
 ```
-File created/modified
-  ↓
-Wazuh FIM
-  ↓
-Rule 554 / 550
-  ↓
-Active Response
-  ↓
-yara-scan
-  ↓
-YARA
-  ↓
-YARA_MATCH
-  ↓
-/var/ossec/logs/yara-results.log
-  ↓
-Wazuh Manager
-  ↓
-Rule 100500 / Level 12
-  ↓
-Dashboard
+Exact content
+    +
+Patterns
+    +
+File properties
+    +
+Hashes
+    +
+Executable structure
 ```
 
-The integration uses:
+The detection method should match the investigation goal.
 
-- YARA 4.5.6
-- Wazuh Agent 4.14.5
-- Wazuh Manager 4.14.1
-- Active Response command `yara-scan`
-- YARA rule `Wazuh_EICAR_Test`
-- Wazuh rule `100500`
+## Practical phase status
 
-The final Dashboard event showed:
+The practical YARA toolbox is complete.
 
-```text
-YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com
-```
+The next learning phase is **formal YARA language**, starting from the structure of a rule and then learning each part one at a time.
 
-with Wazuh Rule 100500 at Level 12.
-
-## Important limitation / learning boundary
-
-The practical toolbox and integration are complete. The next phase is **formal YARA-language learning**, rather than more copy-paste integration work.
-
-Planned language lessons:
-
-1. Rule structure
-2. Identifiers
-3. String types
-4. String modifiers
-5. Conditions
-6. Boolean expressions
-7. Modules
-8. Rule reuse and helper rules
-9. Writing a detection rule from scratch
-10. Positive and negative testing
-
-## Evidence checklist
-
-Screenshots are intentionally collected during the learning/documentation phase.
-
-### 📸 Basic YARA match
-Terminal showing the EICAR string rule matching the test artifact.
-
-### 📸 Hash detection
-Terminal showing the exact EICAR SHA-256 match.
-
-### 📸 Hash change
-Original and modified SHA-256 values and the failed hash-rule match for the modified file.
-
-### 📸 String survives modification
-Modified EICAR detected by the content rule.
-
-### 📸 ELF detection
-ELF rule matching Linux executables.
-
-### 📸 PE detection
-PE rule matching Wine `cmd.exe`.
-
-### 📸 Final YARA → Wazuh alert
-Dashboard showing Rule 100500, Level 12, and the `YARA_MATCH` full log.
-
-## Status
-
-**Completed.** The standalone YARA practical toolbox and the automated YARA → Wazuh integration have both been validated end-to-end.
+This document should not be treated as a replacement for those lessons.
