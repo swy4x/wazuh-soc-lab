@@ -1,132 +1,191 @@
 # Wazuh SOC Lab Architecture
 
-## Components
+## 1. Central architecture
 
-### Wazuh Manager
-Receives security events, decodes data, applies Wazuh rules, and generates alerts.
-
-### Suricata
-Acts as the network IDS. It inspects traffic and writes JSON events to:
-
-`/var/log/suricata/eve.json`
-
-### Zeek
-Acts as a network security monitor. It produces structured network telemetry such as connection, DNS, HTTP, SSL/TLS, and other protocol logs. In this lab, Zeek telemetry is forwarded to Wazuh for centralized detection and investigation.
-
-### Wazuh Indexer
-Stores Wazuh events so they can be searched and investigated.
-
-### Wazuh Dashboard
-Provides the SOC analyst interface for threat hunting and alert investigation.
-
-### YARA
-YARA is used as a file-hunting engine and rule language. In this lab it runs on the Arch Linux endpoint and is invoked automatically by Wazuh Active Response for selected FIM events.
-
-## Practical pipelines
-
-### Suricata
+Wazuh is the central SOC platform.
 
 ```
-Nmap
-  ↓
-TCP SYN traffic
-  ↓
-Suricata
-  ↓
-Custom Suricata detection
-  ↓
-eve.json
-  ↓
-Wazuh Manager
-  ↓
+                    Wazuh Dashboard
+                           ↑
+                           │
+                    Wazuh Indexer
+                           ↑
+                           │
+                    Wazuh Manager
+                 ↙         ↑         ↖
+                ↙          │          ↖
+          Wazuh Agent   Zeek       Suricata
+             ↑             │          │
+       ┌─────┴─────┐       │          │
+       │           │       │          │
+    journald      FIM      └──────┬───┘
+       ↑           │              │
+      sshd         ↓          Network traffic
+                 YARA
+```
+
+## 2. Wazuh components
+
+### Wazuh Agent
+
+Runs on the Arch Linux endpoint.
+
+Responsibilities in this lab:
+
+- collect host logs;
+- collect FIM events;
+- forward telemetry to the Manager;
+- execute selected Active Response commands.
+
+Agent:
+
+- ID: `001`
+- Name: `archlinux`
+- Manager: `127.0.0.1`
+- Version: `4.14.5`
+
+### Wazuh Manager
+
+Receives events, decodes them, applies rules/correlation, generates alerts, and controls Active Response.
+
+### Wazuh Indexer
+
+Stores alert/event data for search and investigation.
+
+### Wazuh Dashboard
+
+Provides the analyst interface for searching and investigating the stored events.
+
+## 3. Host authentication pipeline
+
+```
+SSH authentication attempt
+        ↓
+      sshd
+        ↓
+systemd journald
+        ↓
+  Wazuh Agent
+        ↓
+ Wazuh Manager
+        ↓
+SSH rules / correlation
+        ↓
+Indexer / Dashboard
+```
+
+The agent collects the systemd journal using:
+
+```xml
+<localfile>
+  <log_format>journald</log_format>
+  <location>journald</location>
+</localfile>
+```
+
+Important rules observed:
+
+- 5710 — invalid-user SSH attempt
+- 5760 — SSH authentication failure
+- 5763 — built-in SSH brute-force correlation
+- 100003 — custom SSH brute-force correlation
+
+## 4. Suricata pipeline
+
+```
+Network traffic
+      ↓
+  Suricata
+      ↓
+Custom Suricata signature
+      ↓
+/var/log/suricata/eve.json
+      ↓
+ Wazuh ingestion
+      ↓
 Wazuh rule 86601
-  ↓
-Indexer
-  ↓
+      ↓
 Dashboard
 ```
 
-The Suricata detection and Wazuh ingestion rule are separate layers. In the tested event, Suricata used signature ID `1000001`, while Wazuh used rule `86601`.
+In the tested TCP SYN scan, Suricata generated signature `1000001`. Wazuh then represented the ingested Suricata event with rule `86601`.
 
-### Zeek
+These are different detection layers.
 
-```
-Controlled network activity
-  ↓
-Zeek
-  ↓
-Zeek structured telemetry
-  ↓
-Filebeat / ingestion pipeline
-  ↓
-Wazuh Manager
-  ↓
-Wazuh rules
-  ↓
-Wazuh Dashboard
-```
-
-The lab validated Zeek telemetry reaching Wazuh, including a synthetic SSL event and DNS reconnaissance events. A field-mapping conflict involving Zeek's `id` field was resolved by mapping the value to `data.zeek_id` before ingestion.
-
-### Host authentication
+## 5. Zeek pipeline
 
 ```
-sshd
-  ↓
-systemd journal
-  ↓
-Wazuh Agent
-  ↓
-Wazuh Manager
-  ↓
-Wazuh rules / alerts
-  ↓
-Wazuh Dashboard
+Network activity
+      ↓
+     Zeek
+      ↓
+Structured Zeek telemetry
+      ↓
+Ingestion pipeline
+      ↓
+     Wazuh
+      ↓
+Rules / correlation
+      ↓
+Dashboard
 ```
 
-### FIM / YARA / Wazuh
+A field-mapping conflict with Zeek's native `id` field was resolved by mapping that value to:
 
 ```
-File creation or modification
-  ↓
-Wazuh syscheckd / FIM
-  ↓
-Rule 554 / Rule 550
-  ↓
-Wazuh Active Response
-  ↓
-Agent-side yara-scan
-  ↓
-YARA
-  ↓
-YARA_MATCH
-  ↓
+data.zeek_id
+```
+
+The lab validated SSL telemetry and DNS reconnaissance/correlation.
+
+## 6. FIM → YARA → Wazuh
+
+```
+File created / modified
+        ↓
+ Wazuh syscheckd
+        ↓
+   Rule 554 / 550
+        ↓
+ Active Response
+        ↓
+   yara-scan
+        ↓
+      YARA
+        ↓
+   YARA_MATCH
+        ↓
 /var/ossec/logs/yara-results.log
-  ↓
-Wazuh Agent
-  ↓
-Wazuh Manager Rule 100500
-  ↓
-Dashboard Level 12 alert
+        ↓
+ Wazuh Agent
+        ↓
+ Manager Rule 100500
+        ↓
+ Dashboard
 ```
 
 The YARA integration was validated end-to-end with the harmless EICAR test artifact.
 
-## YARA integration details
+## 7. Key paths
 
-- YARA version: **4.5.6**
-- YARA rules: `/opt/yara-rules/wazuh-malware-lab.yar`
-- Lab directory: `/opt/wazuh-malware-lab`
-- Result log: `/var/ossec/logs/yara-results.log`
-- Active Response command: `yara-scan`
-- Triggering Wazuh rules: **554, 550**
-- Final Wazuh rule: **100500**
-- Final Wazuh alert level: **12**
+| Purpose | Path |
+|---|---|
+| Suricata JSON | `/var/log/suricata/eve.json` |
+| YARA rules | `/opt/yara-rules/wazuh-malware-lab.yar` |
+| YARA result log | `/var/ossec/logs/yara-results.log` |
+| YARA Active Response | `/var/ossec/active-response/bin/yara-scan` |
+| Malware-test directory | `/opt/wazuh-malware-lab` |
+| FIM database | `/var/ossec/queue/fim/db/fim.db` |
 
-The Active Response script reads one JSON line from stdin, extracts the FIM path, restricts scanning to the lab directory, runs YARA, and writes a normalized `YARA_MATCH` line to the result log.
+## 8. Design principle
 
-## SOC architecture principle
+Each tool has a defined role:
 
-Suricata and Zeek provide different network-visibility layers, while Wazuh provides centralized collection, rule processing, correlation, storage, and investigation. YARA provides file-content and file-property hunting and is now connected to Wazuh through FIM and Active Response.
+- **Wazuh** centralizes and correlates.
+- **Suricata** detects network signatures.
+- **Zeek** provides network telemetry.
+- **FIM** detects endpoint file changes.
+- **YARA** evaluates file content/properties.
+- **VirusTotal** supports IOC investigation.
 
-See `docs/yara-wazuh-integration.md` for the complete implementation and validation details.
+The value of the lab comes from connecting these layers into observable detection chains.
