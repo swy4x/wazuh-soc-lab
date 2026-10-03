@@ -2,7 +2,7 @@
 
 ## Objective
 
-Investigate the SHA-256 produced by a Wazuh FIM alert and correlate the artifact with an external malware-intelligence source.
+Use the SHA-256 from a Wazuh FIM event to identify the known test artifact and understand how an analyst should interpret external reputation data.
 
 ## Artifact
 
@@ -30,54 +30,47 @@ File type:
 EICAR virus test files
 ```
 
-## VirusTotal lookup
+## VirusTotal observation
 
 The exact SHA-256 was searched in VirusTotal.
 
-Observed result:
+Observed:
 
-- Detection: **65/67**
-- Popular threat label: `virus.eicar/test`
-- Family labels included: `eicar`, `test`, `file`
-- File size: **68 B**
-- The hash matched the artifact exactly.
+- 65/67 detections
+- EICAR/test-related labels
+- exact hash match
+- 68 B file size
 
-The vendor detections predominantly identified the artifact as an **EICAR test file**, with several vendors explicitly indicating that it is not a real virus.
+Multiple vendors identified the artifact as an EICAR test file rather than a genuine malware sample.
 
-## Analyst conclusion
+## Analyst interpretation
 
-The high detection count does **not** mean this lab artifact is real malware.
+A high detection count by itself is not enough to conclude that an endpoint is infected.
 
-EICAR is a standardized antivirus test artifact intentionally designed to trigger security products. The correct SOC conclusion is:
-
-> The file is the known EICAR antivirus test artifact. Wazuh successfully detected its creation and produced a reliable SHA-256 IOC. The VirusTotal result confirms the identity of the test artifact rather than indicating a genuine malware infection.
-
-## Investigation workflow learned
+In this case, the artifact is the standardized EICAR antivirus test file. The evidence supports:
 
 ```
-File appears
-    ↓
-Wazuh FIM alert
-    ↓
+Known EICAR test artifact
+        +
+Successful Wazuh FIM detection
+        +
+Reliable SHA-256 IOC
+```
+
+## Investigation workflow
+
+```
+FIM alert
+ ↓
 Extract SHA-256
-    ↓
-Verify hash locally
-    ↓
-Search IOC in VirusTotal
-    ↓
-Correlate detection names and file identity
-    ↓
-Make an evidence-based analyst conclusion
+ ↓
+Verify locally
+ ↓
+Search IOC
+ ↓
+Compare file identity / labels
+ ↓
+Document the conclusion
 ```
 
-## Important safety note
-
-The EICAR file was **not executed**. It was used only as a harmless detection test.
-
-## Evidence
-
-### 📸 Screenshot — Wazuh FIM alert
-Capture the Dashboard Rule 554 event used to extract the SHA-256 IOC.
-
-### 📸 Screenshot — VirusTotal investigation
-Capture the VirusTotal result showing the exact SHA-256 match and EICAR test-file identification.
+The file was not executed.
