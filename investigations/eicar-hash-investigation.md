@@ -76,5 +76,8 @@ The EICAR file was **not executed**. It was used only as a harmless detection te
 
 ## Evidence
 
-- Wazuh Dashboard: Rule 554 file creation alert.
-- VirusTotal hash lookup: exact SHA-256 match.
+### 📸 Screenshot — Wazuh FIM alert
+Capture the Dashboard Rule 554 event used to extract the SHA-256 IOC.
+
+### 📸 Screenshot — VirusTotal investigation
+Capture the VirusTotal result showing the exact SHA-256 match and EICAR test-file identification.
