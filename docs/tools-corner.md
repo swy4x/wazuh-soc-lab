@@ -1,6 +1,6 @@
-# 🧰 Tools Corner — A–Z Lab Reference
+# Tools Corner — A–Z Lab Reference
 
-> **The one page to understand what each tool does, where it runs, why we use it, and how it connects to Wazuh.**
+> **The one page to understand what each tool does, where it runs, why the lab uses it, and how it connects to Wazuh.**
 
 The lab is intentionally built from specialized layers.
 
@@ -8,7 +8,7 @@ Wazuh is the central SOC platform, but it does **not** replace the endpoint, net
 
 ---
 
-# 1. 🗺️ The Complete Stack
+# 1.  The Complete Stack
 
 | Component | Job | Runs on | Output / Connection |
 |---|---|---|---|
@@ -31,7 +31,7 @@ Wazuh is the central SOC platform, but it does **not** replace the endpoint, net
 
 ---
 
-# 2. 🧠 Wazuh — The Central SOC Layer
+# 2.  Wazuh — The Central SOC Layer
 
 Think of Wazuh as the **central nervous system** of the lab.
 
@@ -74,7 +74,7 @@ Each has a separate role.
 
 ---
 
-# 3. 🖥️ Wazuh Agent
+# 3.  Wazuh Agent
 
 The Agent runs on the Arch endpoint.
 
@@ -105,7 +105,7 @@ Version:  4.14.5
 
 ---
 
-# 4. 📦 Wazuh Manager
+# 4.  Wazuh Manager
 
 Container:
 
@@ -137,7 +137,7 @@ alert
 
 ---
 
-# 5. 🗄️ Wazuh Indexer
+# 5.  Wazuh Indexer
 
 The Indexer is the searchable storage layer.
 
@@ -151,7 +151,7 @@ It stores the alert/event data that the Dashboard presents to the analyst.
 
 ---
 
-# 6. 🖥️ Wazuh Dashboard
+# 6.  Wazuh Dashboard
 
 The Dashboard is where we investigate the results.
 
@@ -171,7 +171,7 @@ It was used to verify:
 
 ---
 
-# 7. 🐳 Docker
+# 7.  Docker
 
 Docker is the **deployment layer**, not a detection tool.
 
@@ -191,7 +191,7 @@ single-node-wazuh.indexer-1
 
 ---
 
-# 8. 📜 systemd journald
+# 8.  systemd journald
 
 journald is the host's log source.
 
@@ -224,11 +224,11 @@ The **Agent** reads it and forwards the relevant telemetry.
 
 ---
 
-# 9. 🔐 sshd
+# 9.  sshd
 
 sshd produces authentication events.
 
-We tested:
+the lab tested:
 
 - invalid usernames;
 - wrong passwords;
@@ -245,7 +245,7 @@ Important rules:
 
 ---
 
-# 10. 🧠 SSH Correlation — Rule 100003
+# 10.  SSH Correlation — Rule 100003
 
 The custom rule:
 
@@ -274,7 +274,7 @@ This is a real behavioral correlation example.
 
 ---
 
-# 11. 🗂️ FIM / syscheckd
+# 11.  FIM / syscheckd
 
 FIM answers:
 
@@ -327,7 +327,7 @@ The lab also verified:
 
 ---
 
-# 12. 🧪 EICAR
+# 12.  EICAR
 
 EICAR is a standardized antivirus test artifact.
 
@@ -353,7 +353,7 @@ Wazuh automation
 
 ---
 
-# 13. 🌐 Suricata
+# 13.  Suricata
 
 Suricata is the **network IDS/signature engine**.
 
@@ -377,7 +377,7 @@ It is not the SIEM.
 
 ---
 
-# 14. 🧾 Suricata Local SIDs
+# 14.  Suricata Local SIDs
 
 | SID | Detection |
 |---:|---|
@@ -414,7 +414,7 @@ Dashboard
 
 ---
 
-# 15. 🗺️ Nmap
+# 15.  Nmap
 
 Nmap is a **controlled test generator**.
 
@@ -436,7 +436,7 @@ Only authorized targets are used.
 
 ---
 
-# 16. 🔎 Zeek
+# 16.  Zeek
 
 Zeek provides structured network-security telemetry.
 
@@ -458,7 +458,7 @@ Tested rules:
 
 ---
 
-# 17. 🛠️ Zeek Mapping Bug
+# 17.  Zeek Mapping Bug
 
 Zeek has a native:
 
@@ -482,7 +482,7 @@ This is an important real-world lesson:
 
 ---
 
-# 18. 🦠 YARA
+# 18.  YARA
 
 YARA has two closely related meanings.
 
@@ -516,7 +516,7 @@ The practical phase tested strings, Boolean logic, hashes, regex, metadata, help
 
 ---
 
-# 19. 🧪 YARA Practical Toolbox
+# 19.  YARA Practical Toolbox
 
 Tested capabilities:
 
@@ -541,11 +541,11 @@ Tested capabilities:
 
 Detailed record:
 
-➡️ `docs/yara-practical.md`
+ `docs/yara-practical.md`
 
 ---
 
-# 20. 🔗 YARA → Wazuh
+# 20.  YARA → Wazuh
 
 The completed integration:
 
@@ -581,7 +581,7 @@ Important files:
 
 ---
 
-# 21. 🧩 YARA Active Response — Important Debugging
+# 21.  YARA Active Response — Important Debugging
 
 The first scanner used:
 
@@ -605,7 +605,7 @@ This mistake is intentionally documented because understanding **why** it failed
 
 ---
 
-# 22. 🧰 jq
+# 22.  jq
 
 The Active Response event is JSON.
 
@@ -628,7 +628,7 @@ YARA
 
 ---
 
-# 23. 🗄️ SQLite
+# 23.  SQLite
 
 The FIM database was inspected with SQLite:
 
@@ -650,7 +650,7 @@ with the actual endpoint database.
 
 ---
 
-# 24. 🔬 VirusTotal
+# 24.  VirusTotal
 
 VirusTotal is used for **IOC investigation**, not as part of Wazuh's detection engine.
 
@@ -672,7 +672,7 @@ For EICAR, the external result was interpreted correctly as a known antivirus te
 
 ---
 
-# 25. 📱 Termux
+# 25.  Termux
 
 Termux was used as a convenient controlled test client for network experiments.
 
@@ -680,7 +680,7 @@ It can generate traffic toward the lab so that Suricata/Zeek telemetry can be ob
 
 ---
 
-# 26. 🔌 Important Ports
+# 26.  Important Ports
 
 ```
 1514-1515/tcp  → Wazuh Agent communication
@@ -692,7 +692,7 @@ It can generate traffic toward the lab so that Suricata/Zeek telemetry can be ob
 
 ---
 
-# 27. 📁 Important Paths
+# 27.  Important Paths
 
 ```
 ~/wazuh-docker/single-node
@@ -712,7 +712,7 @@ It can generate traffic toward the lab so that Suricata/Zeek telemetry can be ob
 
 ---
 
-# 28. 🧠 Detection-Layer Mental Model
+# 28.  Detection-Layer Mental Model
 
 ```
                   SECURITY ACTIVITY
@@ -744,7 +744,7 @@ YARA is an additional **file-analysis layer** invoked from the FIM path.
 
 ---
 
-# 29. 🧭 Learning Order
+# 29.  Learning Order
 
 The lab's learning progression:
 
@@ -776,26 +776,26 @@ The lab's learning progression:
 13. Formal YARA language
 ```
 
-The point is to learn **why the layers exist**, not simply memorize commands.
+The objective is to understand the role of each layer rather than memorize isolated commands.
 
 ---
 
-# 30. 📌 Current Status
+# 30.  Current Status
 
 ### Completed
 
-✅ Wazuh endpoint foundation  
-✅ journald collection  
-✅ SSH invalid-user detection  
-✅ SSH brute-force correlation  
-✅ realtime FIM  
-✅ EICAR investigation  
-✅ hash/IOC investigation  
-✅ Suricata  
-✅ Nmap → Suricata validation  
-✅ Zeek → Wazuh  
-✅ practical YARA  
-✅ YARA → Wazuh automation  
+ Wazuh endpoint foundation  
+ journald collection  
+ SSH invalid-user detection  
+ SSH brute-force correlation  
+ realtime FIM  
+ EICAR investigation  
+ hash/IOC investigation  
+ Suricata  
+ Nmap → Suricata validation  
+ Zeek → Wazuh  
+ practical YARA  
+ YARA → Wazuh automation  
 
 ### Current learning phase
 
