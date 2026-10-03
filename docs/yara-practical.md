@@ -1,4 +1,4 @@
-# 🦠 YARA Practical Lab — Complete Experiment Record
+# YARA Practical Lab — Complete Experiment Record
 
 > **This document records what we actually tested before beginning the formal YARA-language course.**
 
@@ -24,7 +24,7 @@ The future language course answers:
 
 ---
 
-# 2. 🧠 What YARA is
+# 2.  What YARA is
 
 YARA is both a **rule language** and a **detection engine**.
 
@@ -48,7 +48,7 @@ The `yara` command is the engine that evaluates it.
 
 ---
 
-# 3. 🧪 Experiment 1 — Basic String Matching
+# 3.  Experiment 1 — Basic String Matching
 
 The first rule:
 
@@ -83,7 +83,7 @@ The rule did not need to know the filename.
 
 ---
 
-# 4. 🔁 Experiment 2 — Recursive Scanning
+# 4.  Experiment 2 — Recursive Scanning
 
 Command tested:
 
@@ -103,7 +103,7 @@ This is a small but important practical detail.
 
 ---
 
-# 5. 🔀 Experiment 3 — `any of them`
+# 5.  Experiment 3 — `any of them`
 
 Multiple strings were defined and the condition used:
 
@@ -125,7 +125,7 @@ This is useful when several indicators can independently identify the same artif
 
 ---
 
-# 6. 🔒 Experiment 4 — `all of them`
+# 6.  Experiment 4 — `all of them`
 
 The same style of rule was tested using:
 
@@ -147,7 +147,7 @@ This is useful when a rule should require several pieces of evidence instead of 
 
 ---
 
-# 7. 🧮 Experiment 5 — Boolean Logic
+# 7.  Experiment 5 — Boolean Logic
 
 Separate tests were performed using:
 
@@ -169,7 +169,7 @@ YARA conditions can become logical detection expressions rather than simple stri
 
 ---
 
-# 8. 📏 Experiment 6 — File Size
+# 8.  Experiment 6 — File Size
 
 A file-size condition was tested against the EICAR artifact.
 
@@ -187,7 +187,7 @@ It does not have to depend only on text.
 
 ---
 
-# 9. #️⃣ Experiment 7 — SHA-256 Matching
+# 9. #⃣ Experiment 7 — SHA-256 Matching
 
 YARA hash functionality was tested using:
 
@@ -203,7 +203,7 @@ The original EICAR file matched its expected SHA-256:
 
 ---
 
-# 10. 🧬 Experiment 8 — Hash vs Content
+# 10.  Experiment 8 — Hash vs Content
 
 A modified EICAR copy was created.
 
@@ -245,7 +245,7 @@ So:
 
 ---
 
-# 11. 🔣 Experiment 9 — Regular Expression
+# 11.  Experiment 9 — Regular Expression
 
 A controlled test file contained a private IPv4 pattern.
 
@@ -263,7 +263,7 @@ YARA can search for **patterns**, not only exact strings.
 
 ---
 
-# 12. 🏷️ Experiment 10 — Metadata
+# 12.  Experiment 10 — Metadata
 
 Metadata was added:
 
@@ -284,7 +284,7 @@ It does **not** perform the detection.
 
 ---
 
-# 13. 🧩 Experiment 11 — Private Helper Rules
+# 13.  Experiment 11 — Private Helper Rules
 
 A private helper rule was created and referenced by a public rule.
 
@@ -296,7 +296,7 @@ Private rules can act as reusable internal logic without becoming separate final
 
 ---
 
-# 14. 🏷️ Experiment 12 — Rule Tags
+# 14.  Experiment 12 — Rule Tags
 
 A rule was tested with tags:
 
@@ -312,7 +312,7 @@ Tags classify a rule and can help organize a larger ruleset.
 
 ---
 
-# 15. 🐧 Experiment 13 — ELF Module
+# 15.  Experiment 13 — ELF Module
 
 The ELF module was used to inspect Linux binaries.
 
@@ -346,7 +346,7 @@ YARA can inspect executable structure rather than simply searching raw text.
 
 ---
 
-# 16. 🪟 Experiment 14 — PE Module
+# 16.  Experiment 14 — PE Module
 
 The PE module was tested against:
 
@@ -374,7 +374,7 @@ The PE module lets YARA reason about Windows Portable Executable structure.
 
 ---
 
-# 17. 🧱 Experiment 15 — PE Architecture
+# 17.  Experiment 15 — PE Architecture
 
 The rule:
 
@@ -396,9 +396,9 @@ YARA can use properties inside executable formats, not only generic file content
 
 ---
 
-# 18. 🔍 Experiment 16 — PE Import Test
+# 18.  Experiment 16 — PE Import Test
 
-We tested:
+the lab tested:
 
 ```
 pe.imports("KERNEL32.dll", "CreateProcessA")
@@ -422,7 +422,7 @@ A test should be recorded honestly rather than manipulated until it succeeds.
 
 ---
 
-# 19. 🧬 Experiment 17 — PE + Indicator Logic
+# 19.  Experiment 17 — PE + Indicator Logic
 
 A rule combined:
 
@@ -455,7 +455,7 @@ AND-style conditions really constrain a detection.
 
 ---
 
-# 20. 🔎 Experiment 18 — Recursive EICAR Hunting
+# 20.  Experiment 18 — Recursive EICAR Hunting
 
 The EICAR rule was used recursively against:
 
@@ -474,7 +474,7 @@ This was especially useful because the modified EICAR file had a different SHA-2
 
 ---
 
-# 21. ⚠️ Experiment 19 — Compiled Rules
+# 21.  Experiment 19 — Compiled Rules
 
 A compiled-rule experiment was attempted.
 
@@ -502,7 +502,7 @@ Compiled rules were not required for the current SOC learning path, so this topi
 
 ---
 
-# 22. 🧠 What the Practical Phase Proved
+# 22.  What the Practical Phase Proved
 
 The experiments progressed from simple evidence to richer evidence:
 
@@ -545,7 +545,7 @@ Examples:
 
 ---
 
-# 23. 🔗 Relationship to Wazuh
+# 23.  Relationship to Wazuh
 
 The practical YARA work eventually became the YARA → Wazuh integration.
 
@@ -563,11 +563,11 @@ Wazuh alert
 
 The complete integration is documented separately:
 
-➡️ [YARA → Wazuh Integration](yara-wazuh-integration.md)
+ [YARA → Wazuh Integration](yara-wazuh-integration.md)
 
 ---
 
-# 24. ✅ Practical Phase Status
+# 24.  Practical Phase Status
 
 ### Completed
 
@@ -594,7 +594,7 @@ The complete integration is documented separately:
 
 ---
 
-# 25. 📖 Next: Formal YARA Language
+# 25.  Next: Formal YARA Language
 
 The next stage starts **from zero**.
 
@@ -626,6 +626,6 @@ debug rules
 SOC-quality detection logic
 ```
 
-This practical document is the **experiment record**.
+This document is the practical experiment record.
 
-The formal lessons are where the actual language will be taught carefully, one concept at a time.
+Formal language instruction is maintained separately and will build from syntax fundamentals to detection development.
