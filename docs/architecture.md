@@ -1,10 +1,10 @@
-# 🏗️ Wazuh SOC Lab Architecture
+# Wazuh SOC Lab Architecture
 
 > **The architecture explains how the individual tools become one SOC workflow.**
 
 ---
 
-# 1. 🌐 Central Architecture
+# 1.  Central Architecture
 
 ```
                          ┌─────────────────────┐
@@ -43,7 +43,7 @@ The central design principle is simple:
 
 ---
 
-# 2. 🧠 Wazuh Components
+# 2.  Wazuh Components
 
 ## Wazuh Agent
 
@@ -118,7 +118,7 @@ Lab exposure:
 
 ---
 
-# 3. 🔐 Host Authentication Pipeline
+# 3.  Host Authentication Pipeline
 
 ```
 SSH authentication attempt
@@ -163,7 +163,7 @@ The Agent collects journald with:
 
 ---
 
-# 4. 🧠 SSH Correlation Architecture
+# 4.  SSH Correlation Architecture
 
 The custom rule uses Rule 5760 as its input.
 
@@ -189,7 +189,7 @@ This is the first major example in the lab of Wazuh acting as a **correlation en
 
 ---
 
-# 5. 🌐 Suricata Architecture
+# 5.  Suricata Architecture
 
 ```
 Network traffic
@@ -236,7 +236,7 @@ These IDs belong to different systems.
 
 ---
 
-# 6. 🔎 Zeek Architecture
+# 6.  Zeek Architecture
 
 ```
 Network activity
@@ -270,7 +270,7 @@ Custom rules:
 
 ---
 
-# 7. 🛠️ Zeek Mapping Problem
+# 7.  Zeek Mapping Problem
 
 Zeek uses a native field:
 
@@ -301,7 +301,7 @@ This was a real debugging step in the lab.
 
 ---
 
-# 8. 🗂️ FIM Architecture
+# 8.  FIM Architecture
 
 FIM monitors the endpoint filesystem.
 
@@ -347,7 +347,7 @@ The lab also verified that the syscheck process was using Linux inotify.
 
 ---
 
-# 9. 🧪 EICAR Investigation Architecture
+# 9.  EICAR Investigation Architecture
 
 ```
 EICAR file
@@ -375,7 +375,7 @@ Hash/IOC investigation helps determine what that thing is.
 
 ---
 
-# 10. 🦠 YARA Architecture
+# 10.  YARA Architecture
 
 YARA is the file-analysis layer.
 
@@ -407,7 +407,7 @@ The formal YARA-language course is kept separate.
 
 ---
 
-# 11. 🔗 FIM → YARA → Wazuh
+# 11.  FIM → YARA → Wazuh
 
 The completed end-to-end chain is:
 
@@ -441,7 +441,7 @@ This is one of the most important completed workflows in the repository.
 
 ---
 
-# 12. 🧩 Why the YARA Integration Has Two Detection Steps
+# 12.  Why the YARA Integration Has Two Detection Steps
 
 The architecture deliberately separates:
 
@@ -467,7 +467,7 @@ This separation is more useful than treating everything as one giant scanner.
 
 ---
 
-# 13. 🧰 YARA Active Response
+# 13.  YARA Active Response
 
 Agent-side files:
 
@@ -499,7 +499,7 @@ event into a Wazuh alert.
 
 ---
 
-# 14. 🐛 Important Integration Debugging
+# 14.  Important Integration Debugging
 
 The first scanner read stdin using:
 
@@ -535,7 +535,7 @@ These debugging steps are retained because they are part of the real engineering
 
 ---
 
-# 15. 📁 Key Paths
+# 15.  Key Paths
 
 | Purpose | Path |
 |---|---|
@@ -549,7 +549,7 @@ These debugging steps are retained because they are part of the real engineering
 
 ---
 
-# 16. 🔌 Key Ports
+# 16.  Key Ports
 
 ```
 1514-1515/tcp → Agent communication
@@ -561,7 +561,7 @@ These debugging steps are retained because they are part of the real engineering
 
 ---
 
-# 17. 🧠 Complete Detection Model
+# 17.  Complete Detection Model
 
 ```
                      SECURITY ACTIVITY
@@ -596,7 +596,7 @@ These debugging steps are retained because they are part of the real engineering
 
 ---
 
-# 18. 🎯 Architecture Principle
+# 18.  Architecture Principle
 
 The lab is intentionally layered.
 
