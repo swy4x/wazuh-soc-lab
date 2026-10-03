@@ -1,17 +1,21 @@
-# YARA → Wazuh Integration
+# 🔗 YARA → Wazuh Integration — Complete Lab Record
 
-## Objective
+> **Goal:** when a monitored file changes, Wazuh should automatically launch YARA, capture the result, and bring that result back into Wazuh as a normal alert.
 
-Connect YARA to Wazuh so that a file change detected by Wazuh FIM automatically triggers a YARA scan and returns the result to Wazuh as a normal alert.
+This was validated end-to-end using the harmless EICAR antivirus test artifact.
 
-## Final workflow
+---
+
+# 1. 🎯 Objective
+
+Build this chain:
 
 ```
 File created / modified
         ↓
 Wazuh FIM
         ↓
-Rule 554 / Rule 550
+Rule 554 / 550
         ↓
 Active Response
         ↓
@@ -21,16 +25,38 @@ YARA
         ↓
 YARA_MATCH
         ↓
-/var/ossec/logs/yara-results.log
-        ↓
-Wazuh Agent
+Wazuh log collection
         ↓
 Manager Rule 100500
         ↓
 Dashboard
 ```
 
-## YARA rule
+This is the final working architecture.
+
+---
+
+# 2. 🧠 Why connect FIM and YARA?
+
+FIM and YARA answer different questions.
+
+### FIM
+
+> **What changed?**
+
+### YARA
+
+> **Does the changed file match my detection logic?**
+
+### Wazuh
+
+> **How do we correlate, alert, store, and investigate the result?**
+
+The integration therefore creates a chain rather than turning one tool into another.
+
+---
+
+# 3. 🦠 YARA Rule
 
 Location:
 
@@ -38,7 +64,7 @@ Location:
 /opt/yara-rules/wazuh-malware-lab.yar
 ```
 
-Rule used:
+Rule:
 
 ```yara
 rule Wazuh_EICAR_Test
@@ -56,26 +82,44 @@ rule Wazuh_EICAR_Test
 }
 ```
 
-The rule identifies the EICAR content string. It does not depend on the original file hash.
+### Important design choice
 
-## FIM trigger
+The rule is content-based.
 
-The lab directory is monitored in realtime:
+It does not depend on the original EICAR SHA-256.
+
+That means the integration demonstrates actual YARA matching rather than simply checking whether a file has one hard-coded hash.
+
+---
+
+# 4. 🗂️ FIM Trigger
+
+The monitored directory:
+
+```
+/opt/wazuh-malware-lab
+```
+
+uses realtime FIM:
 
 ```xml
 <directories realtime="yes">/opt/wazuh-malware-lab</directories>
 ```
 
-Relevant FIM events:
+Relevant events:
 
-- Rule 554 — file added
-- Rule 550 — file modified
+| Rule | Meaning |
+|---:|---|
+| 554 | File added |
+| 550 | File modified |
 
-These events are used as the trigger for Active Response.
+These are the Active Response triggers.
 
-## Active Response command
+---
 
-The Manager defines:
+# 5. ⚡ Active Response Configuration
+
+The command definition:
 
 ```xml
 <command>
@@ -85,7 +129,7 @@ The Manager defines:
 </command>
 ```
 
-Active Response:
+The Active Response:
 
 ```xml
 <active-response>
@@ -96,33 +140,73 @@ Active Response:
 </active-response>
 ```
 
-## Agent-side scanner
+### Why only 554 and 550?
 
-Location:
+Because we want the scanner to run when a file is:
+
+- created;
+- modified.
+
+Deletion does not provide a file for YARA to scan.
+
+---
+
+# 6. 🛡️ Scanner Scope
+
+Active Response executable:
 
 ```
 /var/ossec/active-response/bin/yara-scan
 ```
 
-The scanner:
-
-1. reads one JSON event line;
-2. requires the `add` command;
-3. extracts the FIM file path;
-4. accepts only files under `/opt/wazuh-malware-lab/`;
-5. verifies the file exists;
-6. runs YARA;
-7. extracts the match;
-8. writes a normalized result;
-9. exits.
-
-The result format is:
+The scanner is restricted to:
 
 ```
-YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com
+/opt/wazuh-malware-lab/*
 ```
 
-## Important debugging fix
+This is deliberate.
+
+The lab automation is not intended to become an unrestricted endpoint scanner.
+
+---
+
+# 7. 🧩 Scanner Logic
+
+The final scanner performs these steps:
+
+```
+Receive Wazuh event
+       ↓
+Read one JSON line
+       ↓
+Require command = add
+       ↓
+Extract FIM file path
+       ↓
+Check lab-directory restriction
+       ↓
+Check file exists
+       ↓
+Run YARA
+       ↓
+Extract first match
+       ↓
+Write YARA_MATCH
+       ↓
+Exit
+```
+
+The important working input handling is:
+
+```bash
+INPUT=""
+IFS= read -r INPUT
+```
+
+---
+
+# 8. 🐛 Debugging: The `cat` Problem
 
 The first implementation used:
 
@@ -130,27 +214,126 @@ The first implementation used:
 INPUT="$(cat)"
 ```
 
-That waited for EOF and left the Active Response process hanging.
+It looked reasonable at first.
 
-The working approach reads one event line:
+But the Active Response process did not terminate.
+
+### Why?
+
+`cat` waits for EOF.
+
+Wazuh keeps the stdin pipe available to the response process, so EOF did not arrive as expected.
+
+The process was observed waiting on a pipe.
+
+### Fix
+
+Read one event:
 
 ```bash
 IFS= read -r INPUT
 ```
 
-This allows the scanner to process the event and exit.
+After this change, the scanner processed the event and exited.
 
-## Wazuh result log
+### SOC/engineering lesson
 
-The scanner writes to:
+A security automation script must understand the **execution contract of the system launching it**.
+
+The problem was not YARA.
+
+The problem was stdin handling.
+
+---
+
+# 9. 🔍 Extracting the Event
+
+The scanner uses `jq` to extract:
+
+### Command
+
+```
+.command
+```
+
+### FIM path
+
+```
+.parameters.alert.data.syscheck.path
+```
+
+with the alternate path:
+
+```
+.parameters.alert.syscheck.path
+```
+
+The scanner therefore works from the Wazuh event instead of using a hard-coded filename.
+
+---
+
+# 10. 🧪 Running YARA
+
+The scanner executes:
+
+```
+/usr/bin/yara /opt/yara-rules/wazuh-malware-lab.yar "$PATH_TO_SCAN"
+```
+
+If YARA finds a match, the scanner converts it into a predictable event:
+
+```
+YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com
+```
+
+---
+
+# 11. 📝 Result Log
+
+The normalized result is written to:
 
 ```
 /var/ossec/logs/yara-results.log
 ```
 
-The Wazuh Agent collects that file as a local syslog-formatted log source.
+Example:
 
-## Final Wazuh rule
+```
+YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com
+```
+
+This is important because the YARA script itself is not the final alerting system.
+
+It produces telemetry that Wazuh can consume.
+
+---
+
+# 12. 📥 Agent Collection
+
+The Agent collects the YARA result log:
+
+```xml
+<localfile>
+  <log_format>syslog</log_format>
+  <location>/var/ossec/logs/yara-results.log</location>
+</localfile>
+```
+
+Therefore the workflow becomes:
+
+```
+YARA
+ ↓
+normalized log
+ ↓
+Wazuh Agent
+ ↓
+Wazuh Manager
+```
+
+---
+
+# 13. 🚨 Manager Rule 100500
 
 The Manager uses:
 
@@ -164,43 +347,178 @@ The Manager uses:
 </group>
 ```
 
-## Validation
+### What this rule does
 
-The integration was tested by modifying the EICAR artifact in the monitored directory.
+It turns the normalized scanner output:
 
-The result log produced:
+```
+YARA_MATCH
+```
+
+into a Wazuh alert.
+
+---
+
+# 14. 🧪 Final Validation
+
+The final test modified:
+
+```
+/opt/wazuh-malware-lab/eicar.com
+```
+
+by appending a harmless test marker.
+
+This triggered FIM.
+
+FIM triggered Active Response.
+
+Active Response launched YARA.
+
+YARA matched the EICAR content.
+
+The result log contained:
 
 ```
 YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com
 ```
 
-The Wazuh Dashboard then showed:
+The scanner process was then checked and had completed rather than remaining stuck.
+
+---
+
+# 15. 📊 Dashboard Validation
+
+The resulting Dashboard alert contained:
 
 | Field | Observed value |
 |---|---|
-| Rule | 100500 |
-| Level | 12 |
-| Agent | 001 / archlinux |
+| Index | `wazuh-alerts-4.x-2026.10.03` |
+| Agent ID | `001` |
+| Agent name | `archlinux` |
+| Rule ID | `100500` |
+| Rule level | `12` |
 | Location | `/var/ossec/logs/yara-results.log` |
+| Manager | `wazuh.manager` |
 | Full log | `YARA_MATCH rule=Wazuh_EICAR_Test path=/opt/wazuh-malware-lab/eicar.com` |
+| Timestamp | `2026-10-03T09:42:00.291+0000` |
 
-Observed timestamp: **October 3, 2026 @ 09:42:00.291**.
+This is the evidence that the complete chain worked.
 
-## What was actually proven
+---
 
-This lab proved the complete automation chain:
+# 16. 🧩 Configuration Debugging
 
-1. FIM detects a file event.
-2. Wazuh starts Active Response.
-3. The endpoint invokes YARA.
-4. YARA evaluates the file.
-5. The result is written to a Wazuh-collected log.
-6. Wazuh detects the YARA result.
-7. The Dashboard displays the resulting alert.
+There was another real configuration mistake during implementation.
 
-## Scope
+An Active Response block was initially placed after:
 
-- EICAR was used only as a harmless test artifact.
-- The file was not executed.
-- The scanner is restricted to the lab directory.
-- Testing is limited to systems controlled for the lab.
+```xml
+</ossec_config>
+```
+
+That produced an invalid-root configuration error.
+
+The incorrect block was removed.
+
+The command and Active Response configuration were then placed in their valid locations.
+
+Manager validation:
+
+```
+/var/ossec/bin/wazuh-analysisd -t
+```
+
+completed successfully.
+
+The Manager restarted successfully afterward.
+
+---
+
+# 17. 🏁 Final End-to-End Proof
+
+The entire chain was observed:
+
+```
+1. File modification
+        ↓
+2. FIM Rule 550
+        ↓
+3. Active Response
+        ↓
+4. yara-scan
+        ↓
+5. YARA match
+        ↓
+6. yara-results.log
+        ↓
+7. Wazuh Agent
+        ↓
+8. Manager Rule 100500
+        ↓
+9. Indexer
+        ↓
+10. Dashboard alert
+```
+
+This proves that the integration is not merely theoretical.
+
+---
+
+# 18. 🧠 What This Lab Actually Teaches
+
+The deeper lesson is architectural.
+
+A SOC rarely depends on one tool doing everything.
+
+Instead:
+
+```
+FIM
+→ tells us something changed
+
+YARA
+→ tells us whether the file matches detection logic
+
+Wazuh
+→ turns that evidence into a centralized alert
+
+Dashboard
+→ gives the analyst an investigation surface
+```
+
+That is the real value of the integration.
+
+---
+
+# 19. 🛡️ Safety / Scope
+
+- EICAR was used only as a harmless antivirus test artifact.
+- The artifact was never executed.
+- YARA Active Response is restricted to the lab directory.
+- Network tests were performed only against controlled/authorized targets.
+- This is a learning implementation, not a claim of production-ready malware response.
+
+---
+
+# 20. 📌 Status
+
+### Integration: ✅ COMPLETE
+
+### Verified:
+
+- FIM trigger
+- Active Response
+- YARA execution
+- YARA match
+- normalized result logging
+- Agent collection
+- Manager Rule 100500
+- Indexer storage
+- Dashboard alert
+- Active Response stdin debugging
+- Wazuh configuration debugging
+
+### Next:
+
+**Formal YARA language learning from zero.**
