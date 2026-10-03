@@ -74,3 +74,39 @@ Document the conclusion
 ```
 
 The file was not executed.
+
+
+## Hash Evidence vs Custom YARA Detection
+
+The SHA-256 identifies the exact known EICAR artifact:
+
+\`\`\`
+275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
+\`\`\`
+
+The custom YARA rule uses content rather than the original hash:
+
+\`\`\`yara
+rule Wazuh_EICAR_Test
+{
+    strings:
+        $eicar = "EICAR-STANDARD-ANTIVIRUS-TEST-FILE"
+
+    condition:
+        $eicar
+}
+\`\`\`
+
+The practical YARA experiment demonstrated that a modified EICAR copy received a different SHA-256 while still matching the content-based rule.
+
+Therefore the two mechanisms answer different questions:
+
+\`\`\`
+SHA-256
+  ↓
+"Is this the exact known artifact?"
+
+YARA content
+  ↓
+"Does this file contain the recognizable detection pattern?"
+\`\`\`
