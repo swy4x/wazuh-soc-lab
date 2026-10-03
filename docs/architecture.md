@@ -17,10 +17,10 @@ Acts as a network security monitor. It produces structured network telemetry suc
 Stores Wazuh events so they can be searched and investigated.
 
 ### Wazuh Dashboard
-Provides the SOC analyst interface for Threat Hunting and alert investigation.
+Provides the SOC analyst interface for threat hunting and alert investigation.
 
 ### YARA
-Runs as a standalone file-hunting engine in the current lab. YARA rules inspect file content, properties, hashes, and executable structures. YARA is not yet directly integrated into the Wazuh alert pipeline.
+YARA is used as a file-hunting engine and rule language. In this lab it runs on the Arch Linux endpoint and is invoked automatically by Wazuh Active Response for selected FIM events.
 
 ## Practical pipelines
 
@@ -84,24 +84,49 @@ Wazuh rules / alerts
 Wazuh Dashboard
 ```
 
-### FIM / malware-test workflow
+### FIM / YARA / Wazuh
 
 ```
 File creation or modification
   ↓
 Wazuh syscheckd / FIM
   ↓
-Agent
+Rule 554 / Rule 550
   ↓
-Manager
+Wazuh Active Response
   ↓
-FIM rule
+Agent-side yara-scan
   ↓
-Dashboard
+YARA
+  ↓
+YARA_MATCH
+  ↓
+/var/ossec/logs/yara-results.log
+  ↓
+Wazuh Agent
+  ↓
+Wazuh Manager Rule 100500
+  ↓
+Dashboard Level 12 alert
 ```
 
-For EICAR, the resulting SHA-256 was independently verified and investigated as a known harmless antivirus test artifact.
+The YARA integration was validated end-to-end with the harmless EICAR test artifact.
+
+## YARA integration details
+
+- YARA version: **4.5.6**
+- YARA rules: `/opt/yara-rules/wazuh-malware-lab.yar`
+- Lab directory: `/opt/wazuh-malware-lab`
+- Result log: `/var/ossec/logs/yara-results.log`
+- Active Response command: `yara-scan`
+- Triggering Wazuh rules: **554, 550**
+- Final Wazuh rule: **100500**
+- Final Wazuh alert level: **12**
+
+The Active Response script reads one JSON line from stdin, extracts the FIM path, restricts scanning to the lab directory, runs YARA, and writes a normalized `YARA_MATCH` line to the result log.
 
 ## SOC architecture principle
 
-Suricata and Zeek provide different network-visibility layers, while Wazuh provides centralized collection, rule processing, correlation, storage, and investigation. YARA currently remains a separate file-hunting tool in the lab; a future exercise can integrate YARA results into Wazuh.
+Suricata and Zeek provide different network-visibility layers, while Wazuh provides centralized collection, rule processing, correlation, storage, and investigation. YARA provides file-content and file-property hunting and is now connected to Wazuh through FIM and Active Response.
+
+See `docs/yara-wazuh-integration.md` for the complete implementation and validation details.
