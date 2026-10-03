@@ -1,10 +1,10 @@
 # Suricata Local Rules
 
-These are custom detection rules used in the Wazuh SOC lab.
+Custom Suricata signatures used for controlled learning tests.
 
-> Test only against systems and networks you own or are explicitly authorized to assess.
+Only use these rules against systems and networks owned or explicitly authorized for testing.
 
-## Rules
+## Rule index
 
 | SID | Detection |
 |---:|---|
@@ -21,20 +21,18 @@ These are custom detection rules used in the Wazuh SOC lab.
 | 1000011 | TCP NULL Scan |
 | 1000012 | TCP Xmas Scan |
 
-## Tested rules
+## Validated examples
 
-### SID 1000001 — TCP SYN Scan / Port Sweep
+### SID 1000001
 
-Triggered during a controlled Nmap TCP SYN scan. The resulting Suricata alert was ingested by Wazuh under rule 86601.
+Triggered during the controlled Nmap TCP SYN scan.
 
-### SID 1000008 — UDP Scan / Burst
+The event was written to Suricata's `eve.json` and later appeared in Wazuh under the Suricata ingestion rule `86601`.
 
-Observed in the Wazuh Dashboard with the signature:
+### SID 1000008
 
-`LAB: UDP Scan / Burst`
+Observed as a UDP burst associated with DNS traffic.
 
-The event showed UDP traffic associated with DNS.
+## Design note
 
-## Notes
-
-The working lab rules are intentionally kept simple for learning. Thresholds and packet characteristics should be tuned to reduce false positives before production use.
+These rules are learning rules, not production signatures. Thresholds and traffic characteristics should be tuned and validated before use in a real environment.
