@@ -51,4 +51,3 @@ This allowed the event to be indexed correctly.
 ## SOC lesson
 
 Zeek is useful when the analyst needs structured network context rather than only an IDS signature.
-
