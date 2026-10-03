@@ -57,6 +57,8 @@ Wazuh Dashboard
 - SSH invalid-user authentication detection through journald
 - Wazuh SSH rule 5710 observed on the Arch Linux endpoint
 - SSH brute-force correlation using custom Wazuh rule 100003
+- EICAR test-file detection through Wazuh FIM
+- EICAR SHA-256 IOC investigation and VirusTotal correlation
 
 ## Repository goals
 
