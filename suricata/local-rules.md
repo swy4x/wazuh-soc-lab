@@ -36,3 +36,35 @@ Observed as a UDP burst associated with DNS traffic.
 ## Design note
 
 These rules are learning rules, not production signatures. Thresholds and traffic characteristics should be tuned and validated before use in a real environment.
+
+
+## Detailed Custom Signature Record
+
+The lab's custom Suricata SIDs are:
+
+| SID | Detection | Recorded validation |
+|---:|---|---|
+| 1000001 | TCP SYN Scan / Port Sweep | Controlled Nmap SYN scan |
+| 1000002 | ICMP Recon / Ping Sweep | Tested |
+| 1000003 | SSH Connection Burst | Tested |
+| 1000004 | SMB Scan | Tested |
+| 1000005 | RDP Scan | Tested |
+| 1000006 | HTTP Port Scan | Tested |
+| 1000007 | HTTPS Port Scan | Tested |
+| 1000008 | UDP Scan / Burst | Observed |
+| 1000009 | DNS Query Burst | Tested |
+| 1000010 | TCP FIN Scan | Tested |
+| 1000011 | TCP NULL Scan | Tested |
+| 1000012 | TCP Xmas Scan | Tested |
+
+For the Nmap validation, the identifier chain was:
+
+\`\`\`
+Suricata SID 1000001
+       ↓
+eve.json
+       ↓
+Wazuh Rule 86601
+\`\`\`
+
+These are Suricata SIDs, not Wazuh rule IDs. The current repository does not contain the original local-rules source file, so the exact signature bodies are not fabricated here.
