@@ -1,32 +1,32 @@
-# 🛡️ Wazuh SOC Lab
+# Wazuh SOC Lab
 
-> **A hands-on SOC learning lab built from the ground up on Arch Linux.**
+ > **A documented security monitoring and detection lab implemented on Arch Linux.**
 >
 > **Goal:** understand the complete path from **activity → telemetry → detection → correlation → alert → investigation**.
 
 ---
 
-## 🎯 What this repository is
+## What this repository is
 
-This is not a random collection of cybersecurity tools.
+This repository documents a deliberately layered security monitoring environment.
 
-Every major component was installed, configured, tested, debugged, and connected to another layer. The documentation preserves **what was actually done**, **what was observed**, and **what each experiment taught**.
+Each major component was installed, configured, validated, and integrated with the surrounding detection pipeline. The documentation records the implemented configuration, observed results, validation steps, and relevant engineering decisions.
 
 The lab currently covers:
 
-- 🧠 Wazuh SIEM/XDR fundamentals
-- 🔐 SSH authentication detection and brute-force correlation
-- 🗂️ File Integrity Monitoring
-- 🧪 EICAR-based malware-test investigation
-- 🌐 Suricata network IDS
-- 🔎 Zeek network telemetry
-- 🦠 YARA file/content detection
-- 🔗 YARA → Wazuh Active Response automation
-- 🔬 IOC/hash investigation
+-  Wazuh SIEM/XDR fundamentals
+-  SSH authentication detection and brute-force correlation
+-  File Integrity Monitoring
+-  EICAR-based malware-test investigation
+-  Suricata network IDS
+-  Zeek network telemetry
+-  YARA file/content detection
+-  YARA → Wazuh Active Response automation
+-  IOC/hash investigation
 
 ---
 
-# 🖥️ Lab Environment
+# Lab Environment
 
 ### Endpoint
 
@@ -68,7 +68,7 @@ single-node-wazuh.indexer-1
 
 ---
 
-# 🧭 The Big Picture
+# The Big Picture
 
 The lab is built as several detection layers around Wazuh.
 
@@ -111,7 +111,7 @@ The important separation is:
 
 ---
 
-# 🔐 Host Authentication
+# Host Authentication
 
 ## Detection chain
 
@@ -165,11 +165,11 @@ Rule **100003** requires:
 
 This demonstrates the difference between a **single event** and a **behavioral detection**.
 
-➡️ Detailed lab: [SSH brute-force detection](attacks/ssh-brute-force.md)
+ Detailed lab: [SSH brute-force detection](attacks/ssh-brute-force.md)
 
 ---
 
-# 🗂️ File Integrity Monitoring
+# File Integrity Monitoring
 
 FIM answers:
 
@@ -217,7 +217,7 @@ The lab verified Linux inotify resources and confirmed that `wazuh-syscheckd` wa
 
 ---
 
-# 🧪 EICAR Investigation
+# EICAR Investigation
 
 The lab uses the standardized **EICAR antivirus test artifact**.
 
@@ -244,12 +244,12 @@ The exact SHA-256 was then investigated in VirusTotal. The important SOC lesson 
 
 > **A high detection count does not automatically mean a real infection. File identity and context matter.**
 
-➡️ [EICAR FIM detection](attacks/eicar-fim-detection.md)  
-➡️ [EICAR hash investigation](investigations/eicar-hash-investigation.md)
+ [EICAR FIM detection](attacks/eicar-fim-detection.md)  
+ [EICAR hash investigation](investigations/eicar-hash-investigation.md)
 
 ---
 
-# 🌐 Suricata
+# Suricata
 
 Suricata is the lab's **network IDS/signature layer**.
 
@@ -286,13 +286,13 @@ A controlled Nmap SYN scan generated Suricata SID **1000001** and was ingested b
 
 > **Important:** Suricata SID and Wazuh rule ID are different layers.
 
-➡️ [Suricata documentation](suricata/README.md)  
-➡️ [Local Suricata rules](suricata/local-rules.md)  
-➡️ [Nmap SYN scan lab](attacks/nmap-tcp-syn-scan.md)
+ [Suricata documentation](suricata/README.md)  
+ [Local Suricata rules](suricata/local-rules.md)  
+ [Nmap SYN scan lab](attacks/nmap-tcp-syn-scan.md)
 
 ---
 
-# 🔎 Zeek
+# Zeek
 
 Zeek is the lab's **structured network-telemetry layer**.
 
@@ -318,17 +318,17 @@ A real ingestion problem was encountered because Zeek uses an `id` field. The wo
 data.zeek_id
 ```
 
-➡️ [Zeek → Wazuh lab](network/zeek-wazuh.md)
+ [Zeek → Wazuh lab](network/zeek-wazuh.md)
 
 ---
 
-# 🦠 YARA
+# YARA
 
 YARA was learned in two separate phases.
 
 ### Phase 1 — Practical toolbox
 
-We tested:
+the lab tested:
 
 - literal strings
 - `any of them`
@@ -356,11 +356,11 @@ YARA is both:
 1. a **rule language**;
 2. an **engine/program** that evaluates those rules.
 
-➡️ [YARA practical experiments](docs/yara-practical.md)
+ [YARA practical experiments](docs/yara-practical.md)
 
 ---
 
-# 🔗 YARA → Wazuh Automation
+# YARA → Wazuh Automation
 
 The completed automation is:
 
@@ -412,15 +412,15 @@ A real implementation bug was also fixed: the first scanner used `cat` on stdin 
 IFS= read -r INPUT
 ```
 
-➡️ [Complete YARA → Wazuh integration](docs/yara-wazuh-integration.md)
+ [Complete YARA → Wazuh integration](docs/yara-wazuh-integration.md)
 
 ---
 
-# 🧰 Tools Corner
+# Tools Corner
 
-Want to understand the entire stack before diving into individual labs?
+For an overview of the complete stack, see:
 
-➡️ **[Open Tools Corner](docs/tools-corner.md)**
+ **[Open Tools Corner](docs/tools-corner.md)**
 
 It explains:
 
@@ -434,7 +434,7 @@ It explains:
 
 ---
 
-# 📚 Repository Map
+# Repository Map
 
 ```
 README.md
@@ -464,7 +464,7 @@ README.md
 
 ---
 
-# 🧭 Recommended Learning Order
+# Recommended Learning Order
 
 The lab was built in this order:
 
@@ -502,7 +502,7 @@ The practical integration is already complete; now the goal is to understand exa
 
 ---
 
-# ⚠️ Lab Safety
+# Lab Safety
 
 - Only controlled/authorized systems are tested.
 - EICAR is used as a harmless test artifact and is never executed.
