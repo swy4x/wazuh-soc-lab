@@ -1,30 +1,53 @@
 # Suricata Detection Layer
 
-Suricata is the network IDS layer in this lab.
+Suricata is the network IDS layer of this lab.
 
-## Log source
+## Role
 
-`/var/log/suricata/eve.json`
+Suricata inspects network traffic and produces structured detection events.
 
-## Tested detections
+It is not the SIEM. Wazuh receives and processes the resulting telemetry.
+
+## Environment
+
+Interface:
+
+```
+wlp8s0
+```
+
+Main log:
+
+```
+/var/log/suricata/eve.json
+```
+
+## Detection flow
+
+```
+Network traffic
+ ↓
+Suricata
+ ↓
+Signature
+ ↓
+eve.json
+ ↓
+Wazuh
+ ↓
+Wazuh rule / correlation
+ ↓
+Dashboard
+```
+
+## Tested behaviors
 
 - TCP SYN scan / port sweep
 - UDP scan / burst
 - DNS reconnaissance
+- ICMP reconnaissance
 - TCP FIN scan
 - TCP NULL scan
 - TCP Xmas scan
-- ICMP reconnaissance
 
-## Detection model
-
-Suricata detects the network behavior and records structured JSON. Wazuh then ingests those events and applies its own rules.
-
-Keep the two layers conceptually separate:
-
-```
-Suricata signature → network detection
-Wazuh rule         → SIEM ingestion/correlation/alerting
-```
-
-Custom rule files should be added here only after they are exported from the working lab and verified.
+Keep Suricata detection IDs and Wazuh rule IDs conceptually separate.
