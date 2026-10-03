@@ -524,3 +524,65 @@ Complete
 ### Next:
 
 **Formal YARA language learning from zero.**
+
+
+# 21. Exact Custom Rules Used by the Integration
+
+## YARA rule
+
+\`\`\`yara
+rule Wazuh_EICAR_Test
+{
+    meta:
+        author = "Swayam"
+        description = "Detects the harmless EICAR antivirus test string"
+        severity = "high"
+
+    strings:
+        $eicar = "EICAR-STANDARD-ANTIVIRUS-TEST-FILE"
+
+    condition:
+        $eicar
+}
+\`\`\`
+
+## Wazuh Rule 100500
+
+\`\`\`xml
+<group name="yara,local,">
+  <rule id="100500" level="12">
+    <match>YARA_MATCH</match>
+    <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
+    <group>yara,malware_detection,file_integrity,lab,</group>
+  </rule>
+</group>
+\`\`\`
+
+## FIM trigger rules
+
+The Active Response is attached to the built-in FIM rules:
+
+\`\`\`
+554 → file added
+550 → file modified
+\`\`\`
+
+The complete custom detection chain is therefore:
+
+\`\`\`
+FIM 554/550
+    ↓
+Active Response
+    ↓
+YARA Wazuh_EICAR_Test
+    ↓
+YARA_MATCH
+    ↓
+Wazuh Rule 100500
+    ↓
+Indexer
+    ↓
+Dashboard
+\`\`\`
+
+The exact rule source is also preserved in the custom-rules reference document.
