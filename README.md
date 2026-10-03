@@ -561,3 +561,13 @@ rule Wazuh_EICAR_Test
 \`\`\`
 
 The verified custom Suricata SID catalogue and Zeek/Wazuh rule catalogue are documented in the dedicated reference.
+
+### Custom rule documentation
+
+The repository now includes:
+
+\`\`\`
+docs/custom-rules.md
+\`\`\`
+
+This file is the reference point for the custom Wazuh rules, YARA rules, Suricata SID catalogue, and Zeek/Wazuh rule catalogue used throughout the lab.
