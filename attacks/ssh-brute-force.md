@@ -79,3 +79,42 @@ A single authentication failure is an event.
 Repeated failures from the same source within a defined time window become a **behavioral detection**.
 
 That distinction is the main learning point of this lab.
+
+
+## Complete Custom Rule Source
+
+The exact custom rule used in the lab is:
+
+\`\`\`xml
+<group name="ssh,bruteforce,local,">
+
+  <rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
+    <if_matched_sid>5760</if_matched_sid>
+    <same_source_ip/>
+    <description>LAB: SSH Brute Force - 3 authentication failures from the same source IP within 60 seconds</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
+  </rule>
+
+</group>
+\`\`\`
+
+### Evaluation sequence
+
+\`\`\`
+5760 failure #1
+       ↓
+5760 failure #2
+       ↓
+5760 failure #3
+       ↓
+same source IP
+       ↓
+within 60 seconds
+       ↓
+Rule 100003
+\`\`\`
+
+The 60-second ignore setting suppresses repeated firing of this custom rule for the configured period after it triggers. It does not remove the underlying authentication events.
