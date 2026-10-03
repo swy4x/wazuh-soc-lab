@@ -804,3 +804,73 @@ The objective is to understand the role of each layer rather than memorize isola
 ---
 
 > **Tools Corner should grow whenever a new tool is added. The page exists so the lab never becomes a pile of disconnected commands.**
+
+
+# 31. Custom Detection Rules
+
+## Wazuh Rule 100003
+
+\`\`\`xml
+<rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
+  <if_matched_sid>5760</if_matched_sid>
+  <same_source_ip/>
+  <description>LAB: SSH Brute Force - 3 authentication failures from the same source IP within 60 seconds</description>
+  <mitre><id>T1110</id></mitre>
+  <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
+</rule>
+\`\`\`
+
+## Wazuh Rule 100500
+
+\`\`\`xml
+<rule id="100500" level="12">
+  <match>YARA_MATCH</match>
+  <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
+  <group>yara,malware_detection,file_integrity,lab,</group>
+</rule>
+\`\`\`
+
+## YARA Rule Wazuh_EICAR_Test
+
+\`\`\`yara
+rule Wazuh_EICAR_Test
+{
+    meta:
+        author = "Swayam"
+        description = "Detects the harmless EICAR antivirus test string"
+        severity = "high"
+    strings:
+        $eicar = "EICAR-STANDARD-ANTIVIRUS-TEST-FILE"
+    condition:
+        $eicar
+}
+\`\`\`
+
+## Network rule catalogue
+
+Suricata SIDs used:
+
+| SID | Detection |
+|---:|---|
+| 1000001 | TCP SYN Scan / Port Sweep |
+| 1000002 | ICMP Recon / Ping Sweep |
+| 1000003 | SSH Connection Burst |
+| 1000004 | SMB Scan |
+| 1000005 | RDP Scan |
+| 1000006 | HTTP Port Scan |
+| 1000007 | HTTPS Port Scan |
+| 1000008 | UDP Scan / Burst |
+| 1000009 | DNS Query Burst |
+| 1000010 | TCP FIN Scan |
+| 1000011 | TCP NULL Scan |
+| 1000012 | TCP Xmas Scan |
+
+Zeek/Wazuh rules:
+
+| Rule | Level | Purpose |
+|---:|---:|---|
+| 100102 | 3 | Synthetic Zeek SSL |
+| 100304 | 7 | DNS reconnaissance |
+| 100305 | 10 | DNS reconnaissance correlation |
+
+The current repository stores the verified Suricata and Zeek identifiers and observed behavior, but not the original source bodies. The documentation intentionally does not invent missing rule syntax.
