@@ -810,7 +810,7 @@ The objective is to understand the role of each layer rather than memorize isola
 
 ## Wazuh Rule 100003
 
-\`\`\`xml
+```xml
 <rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
   <if_matched_sid>5760</if_matched_sid>
   <same_source_ip/>
@@ -818,21 +818,21 @@ The objective is to understand the role of each layer rather than memorize isola
   <mitre><id>T1110</id></mitre>
   <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
 </rule>
-\`\`\`
+```
 
 ## Wazuh Rule 100500
 
-\`\`\`xml
+```xml
 <rule id="100500" level="12">
   <match>YARA_MATCH</match>
   <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
   <group>yara,malware_detection,file_integrity,lab,</group>
 </rule>
-\`\`\`
+```
 
 ## YARA Rule Wazuh_EICAR_Test
 
-\`\`\`yara
+```yara
 rule Wazuh_EICAR_Test
 {
     meta:
@@ -844,7 +844,7 @@ rule Wazuh_EICAR_Test
     condition:
         $eicar
 }
-\`\`\`
+```
 
 ## Network rule catalogue
 
