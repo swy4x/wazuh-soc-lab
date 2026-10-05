@@ -62,7 +62,7 @@ Rule 5710 is a built-in Wazuh rule. It is not the custom brute-force rule.
 
 The lab keeps the layers separate:
 
-\`\`\`
+```
 SSH invalid user
       ↓
 Wazuh 5710
@@ -74,6 +74,6 @@ Wazuh 5760
 three failures from same source within 60 seconds
       ↓
 Custom Wazuh 100003
-\`\`\`
+```
 
 This means the invalid-user event is useful investigation evidence, while Rule 100003 is the explicit behavioral correlation implemented for the brute-force lab.
