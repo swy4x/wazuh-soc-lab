@@ -637,7 +637,7 @@ The practical phase included concrete rule definitions.
 
 ## EICAR string rule
 
-\`\`\`yara
+```yara
 rule EICAR_Test_File
 {
     strings:
@@ -646,17 +646,17 @@ rule EICAR_Test_File
     condition:
         $eicar
 }
-\`\`\`
+```
 
 ## Regex rule
 
-\`\`\`yara
+```yara
 $ip = /192\\.168\\.1\\.[0-9]{1,3}/
-\`\`\`
+```
 
 ## ELF rule
 
-\`\`\`yara
+```yara
 import "elf"
 
 rule ELF_File_Test
@@ -664,11 +664,11 @@ rule ELF_File_Test
     condition:
         elf.type == elf.ET_EXEC or elf.type == elf.ET_DYN
 }
-\`\`\`
+```
 
 ## PE rule
 
-\`\`\`yara
+```yara
 import "pe"
 
 rule PE_File_Test
@@ -676,11 +676,11 @@ rule PE_File_Test
     condition:
         pe.is_pe
 }
-\`\`\`
+```
 
 ## PE architecture rule
 
-\`\`\`yara
+```yara
 import "pe"
 
 rule PE_32bit_Test
@@ -688,11 +688,11 @@ rule PE_32bit_Test
     condition:
         pe.machine == pe.MACHINE_I386
 }
-\`\`\`
+```
 
 ## PE plus indicator rule
 
-\`\`\`yara
+```yara
 import "pe"
 
 rule PE_String_Test
@@ -703,11 +703,11 @@ rule PE_String_Test
     condition:
         pe.is_pe and $indicator
 }
-\`\`\`
+```
 
 ## Final integration rule
 
-\`\`\`yara
+```yara
 rule Wazuh_EICAR_Test
 {
     meta:
@@ -721,12 +721,12 @@ rule Wazuh_EICAR_Test
     condition:
         $eicar
 }
-\`\`\`
+```
 
 Location:
 
-\`\`\`
+```
 /opt/yara-rules/wazuh-malware-lab.yar
-\`\`\`
+```
 
 The complete verified custom-rule catalogue is also maintained in the custom-rules reference document.
