@@ -56,19 +56,20 @@ Suricata's SID and Wazuh's rule ID represent different layers.
 
 The Wazuh rule does not replace the Suricata signature.
 
+## Custom Suricata Detection
 
-## Custom Suricata Rule
-
-The controlled scan was detected by the lab's custom Suricata SID 1000001:
+The controlled Nmap scan was detected by custom Suricata SID 1000001:
 
 ```
-LAB: TCP SYN Scan / Port Sweep
 SID: 1000001
+Detection: TCP SYN Scan / Port Sweep
 ```
 
-The event was then ingested by Wazuh under Rule 86601.
+The event was written to `eve.json` and ingested by Wazuh under Rule 86601.
 
-The current repository stores the verified SID and observed event but not the original Suricata signature body. The documentation therefore does not reconstruct the missing source syntax.
+The current repository records the verified SID and observed event. The original Suricata signature body is not stored here, so it is not reconstructed.
+
+### Detection path
 
 ```
 Nmap
