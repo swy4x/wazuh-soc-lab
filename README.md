@@ -514,60 +514,16 @@ The practical integration is already complete; now the goal is to understand exa
 
 > **This repository records the lab as actually built, tested, debugged, and understood. Successful experiments, failed experiments, configuration mistakes, and their fixes are kept separate so the documentation remains honest.**
 
-
-
 ## Custom Detection Rules
 
-The lab's custom detection logic is documented separately in **[Custom Detection Rules Reference](docs/custom-rules.md)**.
+Custom detection logic is part of the lab implementation, not a separate collection of examples.
 
-### Wazuh Rule 100003 — SSH brute-force correlation
+| Engine | Identifier | Purpose |
+|---|---|---|
+| Wazuh | 100003 | SSH brute-force correlation |
+| Wazuh | 100500 | YARA result alert |
+| YARA | `Wazuh_EICAR_Test` | EICAR content detection |
+| Suricata | SID 1000001–1000012 | Controlled network signatures |
+| Zeek/Wazuh | 100102, 100304, 100305 | SSL and DNS detection |
 
-```xml
-<rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
-  <if_matched_sid>5760</if_matched_sid>
-  <same_source_ip/>
-  <description>LAB: SSH Brute Force - 3 authentication failures from the same source IP within 60 seconds</description>
-  <mitre><id>T1110</id></mitre>
-  <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
-</rule>
-```
-
-### Wazuh Rule 100500 — YARA result alert
-
-```xml
-<rule id="100500" level="12">
-  <match>YARA_MATCH</match>
-  <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
-  <group>yara,malware_detection,file_integrity,lab,</group>
-</rule>
-```
-
-### YARA rule — Wazuh_EICAR_Test
-
-```yara
-rule Wazuh_EICAR_Test
-{
-    meta:
-        author = "Swayam"
-        description = "Detects the harmless EICAR antivirus test string"
-        severity = "high"
-
-    strings:
-        $eicar = "EICAR-STANDARD-ANTIVIRUS-TEST-FILE"
-
-    condition:
-        $eicar
-}
-```
-
-The verified custom Suricata SID catalogue and Zeek/Wazuh rule catalogue are documented in the dedicated reference.
-
-### Custom rule documentation
-
-The repository now includes:
-
-```
-docs/custom-rules.md
-```
-
-This file is the reference point for the custom Wazuh rules, YARA rules, Suricata SID catalogue, and Zeek/Wazuh rule catalogue used throughout the lab.
+The complete, copy-paste-ready custom rule catalogue is maintained in **[Custom Detection Rules Reference](docs/custom-rules.md)**.
