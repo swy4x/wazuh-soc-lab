@@ -37,12 +37,9 @@ Observed as a UDP burst associated with DNS traffic.
 
 These rules are learning rules, not production signatures. Thresholds and traffic characteristics should be tuned and validated before use in a real environment.
 
+## Custom Signature Catalogue
 
-## Detailed Custom Signature Record
-
-The lab's custom Suricata SIDs are:
-
-| SID | Detection | Recorded validation |
+| SID | Detection | Validation |
 |---:|---|---|
 | 1000001 | TCP SYN Scan / Port Sweep | Controlled Nmap SYN scan |
 | 1000002 | ICMP Recon / Ping Sweep | Tested |
@@ -57,14 +54,14 @@ The lab's custom Suricata SIDs are:
 | 1000011 | TCP NULL Scan | Tested |
 | 1000012 | TCP Xmas Scan | Tested |
 
-For the Nmap validation, the identifier chain was:
+### Nmap validation path
 
-\`\`\`
+```
 Suricata SID 1000001
        ↓
 eve.json
        ↓
 Wazuh Rule 86601
-\`\`\`
+```
 
-These are Suricata SIDs, not Wazuh rule IDs. The current repository does not contain the original local-rules source file, so the exact signature bodies are not fabricated here.
+These are Suricata SIDs, not Wazuh rule IDs. The original signature bodies are not currently stored in the repository, so the documentation preserves only verified identifiers and behavior.
