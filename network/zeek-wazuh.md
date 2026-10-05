@@ -52,10 +52,9 @@ This allowed the event to be indexed correctly.
 
 Zeek is useful when the analyst needs structured network context rather than only an IDS signature.
 
-
 ## Custom Wazuh Rule Catalogue
 
-The Zeek integration used these custom Wazuh rule IDs:
+The Zeek integration used these custom Wazuh rules:
 
 | Rule | Level | Purpose |
 |---:|---:|---|
@@ -63,16 +62,18 @@ The Zeek integration used these custom Wazuh rule IDs:
 | 100304 | 7 | DNS reconnaissance |
 | 100305 | 10 | DNS reconnaissance correlation |
 
-The repository preserves the verified identifiers, levels, telemetry purpose, and the field-mapping fix. The original rule-source blocks are not currently stored, so exact syntax is not reconstructed.
+The integration also required mapping Zeek's native `id` field to `data.zeek_id` so it would not conflict with Wazuh's reserved `id` mapping.
 
-The DNS workflow illustrates the same event-versus-correlation distinction used by the SSH lab:
+### DNS detection relationship
 
-\`\`\`
+```
 Zeek DNS telemetry
       ↓
 Rule 100304
       ↓
-related/repeated DNS activity
+Related or repeated DNS activity
       ↓
 Rule 100305
-\`\`\`
+```
+
+The repository preserves the verified IDs, levels, telemetry purpose, and field-mapping fix. The original Zeek/Wazuh rule-source blocks are not currently stored, so their exact syntax is not reconstructed.
