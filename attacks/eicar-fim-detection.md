@@ -74,7 +74,7 @@ The initial EICAR creation event is a built-in FIM Rule 554.
 
 The completed YARA extension uses the following custom YARA rule:
 
-\`\`\`yara
+```yara
 rule Wazuh_EICAR_Test
 {
     meta:
@@ -88,21 +88,21 @@ rule Wazuh_EICAR_Test
     condition:
         $eicar
 }
-\`\`\`
+```
 
 The YARA result is converted into Wazuh Rule 100500:
 
-\`\`\`xml
+```xml
 <rule id="100500" level="12">
   <match>YARA_MATCH</match>
   <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
   <group>yara,malware_detection,file_integrity,lab,</group>
 </rule>
-\`\`\`
+```
 
 This produces a layered workflow:
 
-\`\`\`
+```
 FIM 554/550
    ↓
 Active Response
@@ -110,4 +110,4 @@ Active Response
 YARA content match
    ↓
 Wazuh 100500
-\`\`\`
+```
