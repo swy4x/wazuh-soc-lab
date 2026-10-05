@@ -639,7 +639,7 @@ The lab uses custom detection logic at several layers. The identifiers belong to
 
 ## Wazuh Rule 100003
 
-\`\`\`xml
+```xml
 <rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
   <if_matched_sid>5760</if_matched_sid>
   <same_source_ip/>
@@ -647,25 +647,25 @@ The lab uses custom detection logic at several layers. The identifiers belong to
   <mitre><id>T1110</id></mitre>
   <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
 </rule>
-\`\`\`
+```
 
 The rule consumes built-in Rule 5760 events and adds source-IP, frequency, timeframe, and suppression logic.
 
 ## Wazuh Rule 100500
 
-\`\`\`xml
+```xml
 <rule id="100500" level="12">
   <match>YARA_MATCH</match>
   <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
   <group>yara,malware_detection,file_integrity,lab,</group>
 </rule>
-\`\`\`
+```
 
 This is the final Wazuh detection layer in the FIM-to-YARA workflow.
 
 ## YARA integration rule
 
-\`\`\`yara
+```yara
 rule Wazuh_EICAR_Test
 {
     meta:
@@ -679,7 +679,7 @@ rule Wazuh_EICAR_Test
     condition:
         $eicar
 }
-\`\`\`
+```
 
 ## Custom network identifiers
 
