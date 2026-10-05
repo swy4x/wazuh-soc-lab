@@ -630,12 +630,11 @@ This document is the practical experiment record.
 
 Formal language instruction is maintained separately and will build from syntax fundamentals to detection development.
 
+## Exact Rules Used During the Practical Phase
 
-# 26. Exact Rules Used During the Practical Phase
+The practical work used concrete YARA rules to verify individual language features before building the Wazuh integration.
 
-The practical phase included concrete rule definitions.
-
-## EICAR string rule
+### Basic EICAR string rule
 
 ```yara
 rule EICAR_Test_File
@@ -648,13 +647,20 @@ rule EICAR_Test_File
 }
 ```
 
-## Regex rule
+### Regex rule
 
 ```yara
-$ip = /192\\.168\\.1\\.[0-9]{1,3}/
+rule Private_IP_Test
+{
+    strings:
+        $ip = /192\.168\.1\.[0-9]{1,3}/
+
+    condition:
+        $ip
+}
 ```
 
-## ELF rule
+### ELF module rule
 
 ```yara
 import "elf"
@@ -666,7 +672,7 @@ rule ELF_File_Test
 }
 ```
 
-## PE rule
+### PE module rule
 
 ```yara
 import "pe"
@@ -678,7 +684,7 @@ rule PE_File_Test
 }
 ```
 
-## PE architecture rule
+### PE architecture rule
 
 ```yara
 import "pe"
@@ -690,7 +696,7 @@ rule PE_32bit_Test
 }
 ```
 
-## PE plus indicator rule
+### PE plus indicator rule
 
 ```yara
 import "pe"
@@ -705,7 +711,11 @@ rule PE_String_Test
 }
 ```
 
-## Final integration rule
+The practical phase also covered `any of them`, `all of them`, AND, OR, NOT, file size, SHA-256, metadata, private helper rules, tags, and recursive scanning.
+
+### Final integration rule
+
+The rule used by the completed Wazuh integration is:
 
 ```yara
 rule Wazuh_EICAR_Test
@@ -723,10 +733,4 @@ rule Wazuh_EICAR_Test
 }
 ```
 
-Location:
-
-```
-/opt/yara-rules/wazuh-malware-lab.yar
-```
-
-The complete verified custom-rule catalogue is also maintained in the custom-rules reference document.
+Stored at `/opt/yara-rules/wazuh-malware-lab.yar`.
