@@ -112,3 +112,93 @@ Respond
  ↓
 Document
 ```
+
+
+# Threat Hunt: FIM File Creation and Modification
+
+## Hunt Hypothesis
+
+> A suspicious file may be created or modified on the endpoint.
+
+The hunt used Wazuh File Integrity Monitoring (FIM) telemetry rather than starting from a high-severity malware alert.
+
+## File Creation — Rule 554
+
+A controlled test file was created:
+
+```bash
+echo "SOC-HUNT-TEST" | sudo tee /opt/wazuh-malware-lab/soc-hunt-test.txt
+```
+
+Wazuh generated Rule **554**:
+
+- Rule: **554**
+- Level: **5**
+- Event: **added**
+- Detection mode: **realtime**
+- Path: `/opt/wazuh-malware-lab/soc-hunt-test.txt`
+- Size: **14 bytes**
+- Owner: **root:root**
+- Permissions: **rw-r--r--**
+- SHA-256: `154395f8c336773df0a07f37f947cd5a47d0fdaf57e07fed2d179d73be163f40`
+- Alert timestamp: **2026-10-05 09:24:50.428 +0000**
+
+The file contained the controlled lab marker `SOC-HUNT-TEST` and was classified as benign in the lab context.
+
+## File Modification — Rule 550
+
+The same file was deliberately modified:
+
+```bash
+echo "MODIFIED" | sudo tee -a /opt/wazuh-malware-lab/soc-hunt-test.txt
+```
+
+Wazuh generated Rule **550**:
+
+- Rule: **550**
+- Level: **7**
+- Event: **modified**
+- Detection mode: **realtime**
+- Path: `/opt/wazuh-malware-lab/soc-hunt-test.txt`
+- Size: **14 → 23 bytes**
+- Changed attributes: **size, mtime, md5, sha1, sha256**
+- SHA-256 before: `154395f8c336773df0a07f37f947cd5a47d0fdaf57e07fed2d179d73be163f40`
+- SHA-256 after: `a0d462755e2927015d22a339a64655d64bcd7f561f8ef9f58c830d5fcfd17adb`
+- Alert timestamp: **2026-10-05 09:27:49.443 +0000**
+
+Final file content:
+
+```text
+SOC-HUNT-TEST
+MODIFIED
+```
+
+The file remained owned by `root:root` with permissions `rw-r--r--`.
+
+## Analyst Assessment
+
+The FIM alerts were valid detections of file creation and modification. They were **benign controlled lab events** because the analyst intentionally created and modified the file during the hunt.
+
+The presence of Rule 550 and its MITRE mapping to T1565.001 does not by itself prove malicious data manipulation. Alert severity and technique mapping provide context; the analyst must correlate the event with file content, ownership, timing, process context, and the surrounding investigation.
+
+## Threat-Hunting Lesson
+
+A SOC analyst can hunt for low-level telemetry that has not crossed a higher alert threshold. The demonstrated workflow was:
+
+```text
+Hypothesis
+ ↓
+Search telemetry
+ ↓
+Generate controlled event
+ ↓
+Validate FIM detection
+ ↓
+Inspect artifact
+ ↓
+Compare before/after evidence
+ ↓
+Classify activity
+```
+
+This complements alert-driven investigation by helping identify activity and potential detection gaps that may not produce high-severity alerts.
