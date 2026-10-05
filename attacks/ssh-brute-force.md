@@ -85,7 +85,7 @@ That distinction is the main learning point of this lab.
 
 The exact custom rule used in the lab is:
 
-\`\`\`xml
+```xml
 <group name="ssh,bruteforce,local,">
 
   <rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
@@ -99,11 +99,11 @@ The exact custom rule used in the lab is:
   </rule>
 
 </group>
-\`\`\`
+```
 
 ### Evaluation sequence
 
-\`\`\`
+```
 5760 failure #1
        ↓
 5760 failure #2
@@ -115,6 +115,6 @@ same source IP
 within 60 seconds
        ↓
 Rule 100003
-\`\`\`
+```
 
 The 60-second ignore setting suppresses repeated firing of this custom rule for the configured period after it triggers. It does not remove the underlying authentication events.
