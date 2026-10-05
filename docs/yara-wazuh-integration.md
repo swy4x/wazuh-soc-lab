@@ -525,10 +525,9 @@ Complete
 
 **Formal YARA language learning from zero.**
 
+## Exact Custom Rules Used by the Integration
 
-# 21. Exact Custom Rules Used by the Integration
-
-## YARA rule
+### Endpoint YARA rule
 
 ```yara
 rule Wazuh_EICAR_Test
@@ -546,7 +545,7 @@ rule Wazuh_EICAR_Test
 }
 ```
 
-## Wazuh Rule 100500
+### Manager Wazuh Rule 100500
 
 ```xml
 <group name="yara,local,">
@@ -558,21 +557,21 @@ rule Wazuh_EICAR_Test
 </group>
 ```
 
-## FIM trigger rules
+### FIM trigger rules
 
-The Active Response is attached to the built-in FIM rules:
+The Active Response is bound to the built-in FIM rules:
 
-```
-554 → file added
-550 → file modified
-```
+| Rule | Event |
+|---:|---|
+| 554 | File added |
+| 550 | File modified |
 
-The complete custom detection chain is therefore:
+### Final detection path
 
 ```
 FIM 554/550
     ↓
-Active Response
+Wazuh Active Response
     ↓
 YARA Wazuh_EICAR_Test
     ↓
@@ -585,4 +584,4 @@ Indexer
 Dashboard
 ```
 
-The exact rule source is also preserved in the custom-rules reference document.
+The exact rule source is also maintained in **[Custom Detection Rules Reference](custom-rules.md)**.
