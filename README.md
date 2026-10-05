@@ -522,7 +522,7 @@ The lab's custom detection logic is documented separately in **[Custom Detection
 
 ### Wazuh Rule 100003 — SSH brute-force correlation
 
-\`\`\`xml
+```xml
 <rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
   <if_matched_sid>5760</if_matched_sid>
   <same_source_ip/>
@@ -530,21 +530,21 @@ The lab's custom detection logic is documented separately in **[Custom Detection
   <mitre><id>T1110</id></mitre>
   <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
 </rule>
-\`\`\`
+```
 
 ### Wazuh Rule 100500 — YARA result alert
 
-\`\`\`xml
+```xml
 <rule id="100500" level="12">
   <match>YARA_MATCH</match>
   <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
   <group>yara,malware_detection,file_integrity,lab,</group>
 </rule>
-\`\`\`
+```
 
 ### YARA rule — Wazuh_EICAR_Test
 
-\`\`\`yara
+```yara
 rule Wazuh_EICAR_Test
 {
     meta:
@@ -558,7 +558,7 @@ rule Wazuh_EICAR_Test
     condition:
         $eicar
 }
-\`\`\`
+```
 
 The verified custom Suricata SID catalogue and Zeek/Wazuh rule catalogue are documented in the dedicated reference.
 
@@ -566,8 +566,8 @@ The verified custom Suricata SID catalogue and Zeek/Wazuh rule catalogue are doc
 
 The repository now includes:
 
-\`\`\`
+```
 docs/custom-rules.md
-\`\`\`
+```
 
 This file is the reference point for the custom Wazuh rules, YARA rules, Suricata SID catalogue, and Zeek/Wazuh rule catalogue used throughout the lab.
