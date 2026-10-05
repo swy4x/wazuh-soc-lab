@@ -67,12 +67,11 @@ FIM provides the first observable fact:
 
 The file metadata and hashes can then be used for further investigation.
 
-
 ## Extended Detection Rules
 
-The initial EICAR creation event is a built-in FIM Rule 554.
+The initial EICAR creation event is detected by built-in FIM Rule 554. The completed YARA extension adds content analysis.
 
-The completed YARA extension uses the following custom YARA rule:
+### YARA rule
 
 ```yara
 rule Wazuh_EICAR_Test
@@ -90,24 +89,26 @@ rule Wazuh_EICAR_Test
 }
 ```
 
-The YARA result is converted into Wazuh Rule 100500:
+### Wazuh Rule 100500
 
 ```xml
-<rule id="100500" level="12">
-  <match>YARA_MATCH</match>
-  <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
-  <group>yara,malware_detection,file_integrity,lab,</group>
-</rule>
+<group name="yara,local,">
+  <rule id="100500" level="12">
+    <match>YARA_MATCH</match>
+    <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
+    <group>yara,malware_detection,file_integrity,lab,</group>
+  </rule>
+</group>
 ```
 
-This produces a layered workflow:
+### Detection chain
 
 ```
 FIM 554/550
-   ↓
+    ↓
 Active Response
-   ↓
+    ↓
 YARA content match
-   ↓
-Wazuh 100500
+    ↓
+Wazuh Rule 100500
 ```
