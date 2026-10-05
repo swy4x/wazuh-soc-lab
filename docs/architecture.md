@@ -632,38 +632,43 @@ What evidence do I have?
 What should I investigate next?
 ```
 
+## Custom Detection Logic
 
-# 19. Custom Detection Rules
+The lab contains custom detection at multiple layers. Each identifier belongs to its own engine and should be interpreted in that context.
 
-The lab uses custom detection logic at several layers. The identifiers belong to different engines and must not be mixed.
+### SSH brute-force correlation — Wazuh Rule 100003
 
-## Wazuh Rule 100003
-
-```xml
-<rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
-  <if_matched_sid>5760</if_matched_sid>
-  <same_source_ip/>
-  <description>LAB: SSH Brute Force - 3 authentication failures from the same source IP within 60 seconds</description>
-  <mitre><id>T1110</id></mitre>
-  <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
-</rule>
-```
-
-The rule consumes built-in Rule 5760 events and adds source-IP, frequency, timeframe, and suppression logic.
-
-## Wazuh Rule 100500
+This rule consumes built-in Wazuh Rule 5760 events and correlates three failures from the same source IP within 60 seconds:
 
 ```xml
-<rule id="100500" level="12">
-  <match>YARA_MATCH</match>
-  <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
-  <group>yara,malware_detection,file_integrity,lab,</group>
-</rule>
+<group name="ssh,bruteforce,local,">
+  <rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
+    <if_matched_sid>5760</if_matched_sid>
+    <same_source_ip/>
+    <description>LAB: SSH Brute Force - 3 authentication failures from the same source IP within 60 seconds</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
+  </rule>
+</group>
 ```
 
-This is the final Wazuh detection layer in the FIM-to-YARA workflow.
+### YARA result alert — Wazuh Rule 100500
 
-## YARA integration rule
+This rule converts the scanner's `YARA_MATCH` output into a Wazuh alert:
+
+```xml
+<group name="yara,local,">
+  <rule id="100500" level="12">
+    <match>YARA_MATCH</match>
+    <description>YARA detected a malware-test indicator in a FIM-monitored file</description>
+    <group>yara,malware_detection,file_integrity,lab,</group>
+  </rule>
+</group>
+```
+
+### YARA integration rule
 
 ```yara
 rule Wazuh_EICAR_Test
@@ -681,13 +686,13 @@ rule Wazuh_EICAR_Test
 }
 ```
 
-## Custom network identifiers
+### Network detection identifiers
 
 | Engine | Identifier | Purpose |
 |---|---:|---|
-| Suricata | SID 1000001-1000012 | Controlled network signatures |
-| Zeek/Wazuh | 100102 | Synthetic SSL |
+| Suricata | SID 1000001–1000012 | Controlled network signatures |
+| Zeek/Wazuh | 100102 | Synthetic SSL telemetry |
 | Zeek/Wazuh | 100304 | DNS reconnaissance |
 | Zeek/Wazuh | 100305 | DNS reconnaissance correlation |
 
-The repository records verified identifiers and behavior where original source bodies are available. It does not reconstruct unverified signature syntax.
+See **[Custom Detection Rules Reference](custom-rules.md)** for the complete rule catalogue.
