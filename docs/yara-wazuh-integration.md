@@ -530,7 +530,7 @@ Complete
 
 ## YARA rule
 
-\`\`\`yara
+```yara
 rule Wazuh_EICAR_Test
 {
     meta:
@@ -544,11 +544,11 @@ rule Wazuh_EICAR_Test
     condition:
         $eicar
 }
-\`\`\`
+```
 
 ## Wazuh Rule 100500
 
-\`\`\`xml
+```xml
 <group name="yara,local,">
   <rule id="100500" level="12">
     <match>YARA_MATCH</match>
@@ -556,20 +556,20 @@ rule Wazuh_EICAR_Test
     <group>yara,malware_detection,file_integrity,lab,</group>
   </rule>
 </group>
-\`\`\`
+```
 
 ## FIM trigger rules
 
 The Active Response is attached to the built-in FIM rules:
 
-\`\`\`
+```
 554 → file added
 550 → file modified
-\`\`\`
+```
 
 The complete custom detection chain is therefore:
 
-\`\`\`
+```
 FIM 554/550
     ↓
 Active Response
@@ -583,6 +583,6 @@ Wazuh Rule 100500
 Indexer
     ↓
 Dashboard
-\`\`\`
+```
 
 The exact rule source is also preserved in the custom-rules reference document.
