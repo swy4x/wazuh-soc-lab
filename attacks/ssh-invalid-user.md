@@ -55,19 +55,18 @@ The important information is not only that authentication failed. The event also
 
 The event can later become an input to correlation logic such as SSH brute-force detection.
 
-
-## Position in the Custom SSH Detection Chain
+## Position in the SSH Detection Chain
 
 Rule 5710 is a built-in Wazuh rule. It is not the custom brute-force rule.
 
-The lab keeps the layers separate:
+The lab's detection layers are:
 
 ```
 SSH invalid user
       ↓
 Wazuh 5710
       ↓
-SSH authentication failures
+SSH authentication failure
       ↓
 Wazuh 5760
       ↓
@@ -76,4 +75,4 @@ three failures from same source within 60 seconds
 Custom Wazuh 100003
 ```
 
-This means the invalid-user event is useful investigation evidence, while Rule 100003 is the explicit behavioral correlation implemented for the brute-force lab.
+This separation is important: Rule 5710 provides evidence about the attempted account, while Rule 100003 represents the higher-level brute-force behavior.
