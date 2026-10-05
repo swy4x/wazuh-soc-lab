@@ -80,14 +80,12 @@ Repeated failures from the same source within a defined time window become a **b
 
 That distinction is the main learning point of this lab.
 
+## Custom Rule Used in the Lab
 
-## Complete Custom Rule Source
-
-The exact custom rule used in the lab is:
+The exact Wazuh rule used for the correlation test was:
 
 ```xml
 <group name="ssh,bruteforce,local,">
-
   <rule id="100003" level="10" frequency="3" timeframe="60" ignore="60">
     <if_matched_sid>5760</if_matched_sid>
     <same_source_ip/>
@@ -97,7 +95,6 @@ The exact custom rule used in the lab is:
     </mitre>
     <group>authentication_failed,brute_force,ssh,lab,mitre_t1110,</group>
   </rule>
-
 </group>
 ```
 
@@ -117,4 +114,4 @@ within 60 seconds
 Rule 100003
 ```
 
-The 60-second ignore setting suppresses repeated firing of this custom rule for the configured period after it triggers. It does not remove the underlying authentication events.
+The rule does not replace the built-in SSH rules. It consumes Rule 5760 and adds behavioral correlation. The 60-second ignore setting suppresses repeated firing of Rule 100003 after it triggers.
