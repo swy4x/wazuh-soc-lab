@@ -52,40 +52,39 @@ Dashboard
 
 Keep Suricata detection IDs and Wazuh rule IDs conceptually separate.
 
-
 ## Custom Signature Catalogue
 
-The lab used the following custom Suricata SIDs:
+The lab used the following Suricata SIDs:
 
-\`\`\`
-1000001  TCP SYN Scan / Port Sweep
-1000002  ICMP Recon / Ping Sweep
-1000003  SSH Connection Burst
-1000004  SMB Scan
-1000005  RDP Scan
-1000006  HTTP Port Scan
-1000007  HTTPS Port Scan
-1000008  UDP Scan / Burst
-1000009  DNS Query Burst
-1000010  TCP FIN Scan
-1000011  TCP NULL Scan
-1000012  TCP Xmas Scan
-\`\`\`
+| SID | Detection |
+|---:|---|
+| 1000001 | TCP SYN Scan / Port Sweep |
+| 1000002 | ICMP Recon / Ping Sweep |
+| 1000003 | SSH Connection Burst |
+| 1000004 | SMB Scan |
+| 1000005 | RDP Scan |
+| 1000006 | HTTP Port Scan |
+| 1000007 | HTTPS Port Scan |
+| 1000008 | UDP Scan / Burst |
+| 1000009 | DNS Query Burst |
+| 1000010 | TCP FIN Scan |
+| 1000011 | TCP NULL Scan |
+| 1000012 | TCP Xmas Scan |
 
-The Nmap validation proved the complete path for SID 1000001:
+### Validated Nmap path
 
-\`\`\`
+```
 Nmap
- ↓
+  ↓
 TCP SYN traffic
- ↓
+  ↓
 Suricata SID 1000001
- ↓
+  ↓
 /var/log/suricata/eve.json
- ↓
+  ↓
 Wazuh Rule 86601
- ↓
+  ↓
 Dashboard
-\`\`\`
+```
 
-The repository records the verified SID catalogue and observed behavior. It does not currently contain the original Suricata signature source, so exact rule bodies are not reconstructed.
+These identifiers are Suricata SIDs, not Wazuh rule IDs. The repository records the verified catalogue and observed behavior; it does not reconstruct the original signature source when that source is not present.
