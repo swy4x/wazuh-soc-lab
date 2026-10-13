@@ -83,15 +83,26 @@ These are observations reported by the sandbox for the exact-hash sample. They a
 
 ## 7. Network Indicators
 
-| Indicator | Observed purpose/context | Handling |
-|---|---|---|
-| `api.ipify.org` | External-IP lookup; HTTP 200 observed | Contextual network IOC |
-| `ip-api.com` | Geolocation lookup; HTTP 200 observed | Contextual network IOC |
-| `208.95.112.1` | DNS answer observed for `ip-api.com` in the sandbox report | Time-sensitive infrastructure; validate before blocking |
-| `c.pki.goog` | Certificate revocation-list requests using Microsoft CryptoAPI user-agent | Not malicious by itself |
-| `https://www.baidu.com/s?wd=` | Embedded search URL string in the executable | Static string only; not confirmed as C2 |
+The saved Triage report records the following flows for sandbox process PID 4816 / process ID 90:
 
-The IP address `199.91.100.152` appeared as a parameter in the observed geolocation request. It should not be treated as attacker infrastructure without separate evidence.
+| Domain / destination | Flow | Protocol / port | Bytes received by process | Bytes sent by process | Observation |
+|---|---:|---|---:|---:|---|
+| `khltt1.club` → `202.61.85.151` | 27 | TCP/6802 | 443,223 | 17,656 | Largest suspicious-domain flow; application protocol and payload not established |
+| `khltt1.club` → `202.61.85.151` | 28 | TCP/6801 | 955 | 10,413 | Additional connection; purpose not established |
+| `api.ipify.org` → `104.26.12.205:443` | 30 | TLS/HTTPS | 3,611 | 1,213 | GET `https://api.ipify.org/`; HTTP 200 observed, consistent with external-IP lookup |
+| `ip-api.com` → `208.95.112.1:80` | 34 | TCP/HTTP | 914 | 692 | GET `/json/199.91.100.152?lang=zh-CN`; HTTP 200 observed, consistent with IP geolocation |
+| `c.pki.goog` → `173.194.41.94:80` | 32 | TCP/HTTP | 5,555 | 1,140 | Certificate revocation-list requests with `Microsoft-CryptoAPI/10.0` user agent; likely certificate-validation context |
+
+The domain `khltt1.club` resolved to `202.61.85.151` through DNS. The report's embedded Recorded Future SOAR feed gave `202.61.85.151` a risk score of 10 with the reason “Historical Spam Source”; the same feed gave `khltt1.club` a score of 0. These are source-specific reputation snapshots, not universal verdicts; a score of zero does not establish that a domain is safe.
+
+The IP address `199.91.100.152` appeared as a parameter in the geolocation request. It should not be treated as attacker infrastructure without separate evidence. The `208.95.112.1` address is the observed DNS answer for `ip-api.com` and should not be called C2 based solely on its appearance in a third-party list.
+
+**Network assessment:** The communication with `khltt1.club` on TCP ports 6801 and 6802 is the highest-priority network lead in the available records. Flow byte counts do not reveal payload contents and do not, by themselves, prove data exfiltration or command-and-control. The protocol and purpose of these two connections remain unconfirmed.
+
+Other contextual indicators:
+- `api.ipify.org`: external-IP lookup.
+- `ip-api.com`: geolocation lookup.
+- `https://www.baidu.com/s?wd=`: embedded search URL string in the executable; not confirmed as a network connection or C2.
 
 ## 8. Selected MITRE ATT&CK Mapping
 
