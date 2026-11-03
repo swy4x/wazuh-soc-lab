@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
+  <title id="title">Wazuh SOC Lab</title>
+  <desc id="desc">A dark terminal-inspired banner for a hands-on blue team security monitoring lab.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07111b"/><stop offset="1" stop-color="#101d29"/></linearGradient>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0H0V36" fill="none" stroke="#183142" stroke-width="1"/></pattern>
+  </defs>
+  <rect width="1200" height="300" rx="22" fill="url(#bg)"/>
+  <rect width="1200" height="300" rx="22" fill="url(#grid)" opacity=".65"/>
+  <path d="M0 248H1200" stroke="#1b6c57" stroke-width="2" opacity=".8"/>
+  <circle cx="66" cy="54" r="7" fill="#ff6b6b"/><circle cx="91" cy="54" r="7" fill="#f6c85f"/><circle cx="116" cy="54" r="7" fill="#54d6a0"/>
+  <text x="66" y="132" fill="#62e6a8" font-family="monospace" font-size="20">$ ./start-soc-lab</text>
+  <text x="66" y="190" fill="#edf7f4" font-family="monospace" font-weight="700" font-size="48">WAZUH SOC LAB</text>
+  <text x="68" y="224" fill="#9bb6b1" font-family="monospace" font-size="18">MONITOR  •  DETECT  •  INVESTIGATE  •  LEARN</text>
+  <text x="1100" y="282" text-anchor="end" fill="#62e6a8" font-family="monospace" font-size="13">BLUE TEAM / ARCH LINUX</text>
+</svg>
