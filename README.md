@@ -1,3 +1,45 @@
+![Wazuh SOC Lab](assets/soc-lab-banner.svg)
+
+<p align="center">
+  <strong>A hands-on security monitoring and detection engineering lab built on Arch Linux.</strong><br/>
+  Collect telemetry, build detections, investigate alerts, and document what the evidence shows.
+</p>
+
+<p align="center">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Arch%20Linux-1793D1?style=flat-square&logo=arch-linux&logoColor=white"/>
+  <img alt="SIEM" src="https://img.shields.io/badge/SIEM-Wazuh-00A98F?style=flat-square"/>
+  <img alt="Network IDS" src="https://img.shields.io/badge/Network%20IDS-Suricata-EF6C35?style=flat-square"/>
+  <img alt="Telemetry" src="https://img.shields.io/badge/Telemetry-Zeek-5B8DEF?style=flat-square"/>
+  <img alt="Detection" src="https://img.shields.io/badge/Detection-YARA-8B5CF6?style=flat-square"/>
+  <img alt="Status" src="https://img.shields.io/badge/status-learning%20lab-62E6A8?style=flat-square&labelColor=17212B"/>
+</p>
+
+> [!NOTE]
+> This is a personal learning lab, not a production SOC deployment. The repository distinguishes implemented and validated experiments from concepts and future work.
+
+## Quick navigation
+
+| Start here | What you'll find |
+|---|---|
+| [Lab architecture](docs/architecture.md) | Components and data flow |
+| [Tools corner](docs/tools-corner.md) | Why each tool is used and how it fits |
+| [Attack simulations](attacks/) | Controlled SSH, Nmap, and EICAR exercises |
+| [Investigations](investigations/) | Evidence-led analysis and findings |
+| [Network telemetry](network/) | Zeek integration notes |
+| [Suricata](suricata/) | IDS configuration and local signatures |
+| [YARA practice](docs/yara-practical.md) | Rule-writing experiments |
+| [YARA + Wazuh](docs/yara-wazuh-integration.md) | Active Response integration |
+
+## What this lab demonstrates
+
+- **Host monitoring:** SSH authentication events and File Integrity Monitoring.
+- **Network visibility:** Suricata alerts and Zeek connection/DNS telemetry.
+- **Detection engineering:** custom Wazuh correlation, Suricata signatures, and YARA rules.
+- **Investigation:** event context, file hashes, and validation of alert evidence.
+- **Automation:** a lab-scoped YARA scan triggered through Wazuh Active Response.
+
+---
+
 # Wazuh SOC Lab
 
  > **A documented security monitoring and detection lab implemented on Arch Linux.**
